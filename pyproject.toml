@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+    "setuptools >= 60",
+    "wheel >= 0.37.1",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "primaschema"
+description = "Generate PHA4GE-compatible primer scheme descriptions"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["genomics", "epidemiology"]
+license = {text = "MIT License"}
+classifiers = [
+    "Framework :: Django",
+    "Programming Language :: Python :: 3.10",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "biopython==1.79",
+    "defopt==6.4.0",
+    "pandas==1.4.3",
+]
+dynamic = ["version"]
+[project.scripts]
+primaschema = "primaschema.cli:main"
