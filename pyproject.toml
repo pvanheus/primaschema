@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools >= 60",
+    "setuptools >= 64",
     "wheel >= 0.37.1",
 ]
 build-backend = "setuptools.build_meta"
@@ -23,10 +23,13 @@ classifiers = [
     "Operating System :: MacOS",
 ]
 dependencies = [
-    "biopython==1.79",
-    "defopt==6.4.0",
-    "pandas==1.4.3",
+    "biopython == 1.79",
+    "defopt == 6.4.0",
+    "pandas == 1.4.3",
 ]
 dynamic = ["version"]
 [project.scripts]
 primaschema = "primaschema.cli:main"
+
+[tool.setuptools.dynamic]
+version = {file = ["VERSION"]}
