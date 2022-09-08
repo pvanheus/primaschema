@@ -16,6 +16,11 @@ def test_version():
     run("primaschema --version")
 
 
-def test_build():
-    run_cmd = run("primaschema build sars-cov-2/eden/v1/eden.scheme.bed")
+def test_hash_bed():
+    run_cmd = run("primaschema hash-bed eden.scheme.bed")
     assert "4a9cc7082d23d32b" in run_cmd.stdout
+
+
+def test_hash_ref():
+    run_cmd = run("primaschema hash-ref eden.reference.fasta")
+    assert "105c82802b67521950854a851fc6eefd" in run_cmd.stdout

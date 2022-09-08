@@ -26,6 +26,8 @@ dependencies = [
     "biopython == 1.79",
     "defopt == 6.4.0",
     "pandas == 1.4.3",
+    "pre-commit",
+    "pytest"
 ]
 dynamic = ["version"]
 [project.scripts]
