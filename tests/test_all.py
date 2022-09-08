@@ -5,10 +5,12 @@ import pytest
 
 data_dir = "tests/data"
 
+
 def run(cmd, cwd="./"):  # Helper for CLI testing
     return subprocess.run(
         cmd, cwd=data_dir, shell=True, check=True, text=True, capture_output=True
     )
+
 
 def test_version():
     run("primaschema --version")
