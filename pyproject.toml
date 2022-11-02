@@ -34,4 +34,4 @@ dynamic = ["version"]
 primaschema = "primaschema.cli:main"
 
 [tool.setuptools.dynamic]
-version = {file = ["VERSION"]}
+version = {attr = "primaschema.__version__"}
