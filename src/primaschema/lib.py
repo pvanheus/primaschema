@@ -1,4 +1,5 @@
 import hashlib
+from collections import defaultdict
 from pathlib import Path
 
 import defopt
@@ -6,39 +7,14 @@ import pandas as pd
 from Bio import SeqIO
 
 
-def hash_bed(bed_path: Path) -> str:
-    """Legacy coordinate hashing function"""
-    scheme_bed_fields = [
-        "chrom",
-        "chromStart",
-        "chromEnd",
-        "name",
-        "poolName",
-        "strand",
-    ]
-    fields_to_hash = ["chrom", "chromStart", "chromEnd", "strand"]
-
-    df = pd.read_csv(
-        bed_path,
-        sep="\t",
-        names=scheme_bed_fields,
-        dtype=dict(
-            chrom=str,
-            chromStart=int,
-            chromEnd=int,
-            name=str,
-            poolName=str,
-            strand=str,
-        ),
-    )
-
-    # Normalise and hash bed records
-    df_norm = df.applymap(
-        lambda x: x.strip() if isinstance(x, str) else x
-    )  # Strip trailing and leading whitespace
-    df_norm = df_norm[[*fields_to_hash]].sort_values("chromStart")  # Sort by start pos
-    df_norm_text = df_norm.to_csv(sep="\t", header=False, index=False)
-    hex_digest = hashlib.md5(df_norm_text.encode()).hexdigest()
+def hash_sequences(sequences: list[str]) -> str:
+    sequences = sorted(sequences)
+    concatenated_seqs = ",".join(sequences).upper()
+    chars_in_concatenated_seqs = set("".join(sequences))
+    allowed_chars = set("ACGT")
+    if not chars_in_concatenated_seqs <= allowed_chars:
+        raise RuntimeError("Found illegal characters in primer sequences")
+    hex_digest = hashlib.sha256(concatenated_seqs.encode()).hexdigest()
     return hex_digest
 
 
@@ -67,24 +43,52 @@ def hash_primer_bed(bed_path: Path):
             sequence=str,
         ),
     )
-    df_norm = df.sort_values(["chromStart", "strand", "sequence"])
-    concatenated_seqs = "|".join(df_norm["sequence"].tolist())
-    chars_in_concatenated_seqs = set("".join(df_norm["sequence"].tolist()))
-    allowed_chars = set("ACGT")
-    if not chars_in_concatenated_seqs <= allowed_chars:
-        raise RuntimeError("Illegal chars")
-    hex_digest = hashlib.sha256(concatenated_seqs.encode()).hexdigest()
-    return hex_digest
+    return hash_sequences(df["sequence"].tolist())
 
 
-def hash_scheme_bed(bed_path: Path) -> str:
-    """Hash a 6 column {scheme}.scheme.bed file"""
-    pass
+def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
+    """
+    Hash a 6 column {scheme}.scheme.bed file
+
+    Seqs need to first be retrieved and sorted against in order to normalise prior to hashing
+    """
+    ref_record = SeqIO.read(fasta_path, "fasta")
+    scheme_bed_fields = [
+        "chrom",
+        "chromStart",
+        "chromEnd",
+        "name",
+        "poolName",
+        "strand",
+    ]
+    df = pd.read_csv(
+        bed_path,
+        sep="\t",
+        names=scheme_bed_fields,
+        dtype=dict(
+            chrom=str,
+            chromStart=int,
+            chromEnd=int,
+            name=str,
+            poolName=str,
+            strand=str,
+        ),
+    )
+    primer_sequences = []
+    for r in df.to_dict("records"):
+        start_pos, end_pos = r["chromStart"], r["chromEnd"]
+        if r["strand"] == "+":
+            primer_sequences.append(str(ref_record.seq[start_pos:end_pos]))
+        else:
+            primer_sequences.append(
+                str(ref_record.seq[start_pos:end_pos].reverse_complement())
+            )
+    return hash_sequences(primer_sequences)
 
 
 def hash_ref(ref_path: Path):
     record = SeqIO.read(ref_path, "fasta")
-    hex_digest = hashlib.md5(str(record.seq).upper().encode()).hexdigest()
+    hex_digest = hashlib.sha256(str(record.seq).upper().encode()).hexdigest()
     return hex_digest
 
 
