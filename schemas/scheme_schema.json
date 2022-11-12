@@ -1,10 +1,8 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/pha4ge/primer-schemes",
-  "title": "Amplicon Scheme",
-  "description": "A PrimalSeq Amplicon Scheme",
-  "type": "array",
-  "items": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/pha4ge/primer-schemes",
+    "title": "Amplicon Scheme",
+    "description": "A PrimalSeq Amplicon Scheme",
     "type": "object",
     "properties": {
         "name": {
@@ -89,8 +87,12 @@
             "description": "Link to publication describing the scheme (DOIs preferred when available)",
             "type": "string"
         }
-      },
-      "required": [ "name", "organism", "developers", "amplicon_size", "bed_url" ]
-    }
+    },
+    "required": [
+        "name",
+        "organism",
+        "developers",
+        "amplicon_size",
+        "bed_url"
+    ]
 }
-Footer
