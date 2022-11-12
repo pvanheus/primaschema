@@ -1,0 +1,67 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/pha4ge/primaschema/tree/main/schemas/mainfest_schema.json",
+    "title": "Primer Scheme Manifest",
+    "description": "A Manifest of Primer Schemes",
+    "type": "object",
+    "properties": {
+        "metadata": {
+            "description": "Metadata describing the contents of the manifest",
+            "type": "string"
+        },
+        "respository": {
+            "description": "A URI describing the location of the live, updatable version of the schema",
+            "type": "string",
+            "format": "iri-reference"
+        },
+        "latest_doi": {
+            "description": "The Digital Object Identifier of the latest version of the manifest",
+            "type": "string",
+            "format": "iri-reference"
+        },
+        "license": {
+            "description": "The license under which the manifest is released. Should be an identifier in the SPDX license list",
+            "type": "string"
+        },
+        "schemes": {
+            "description": "The list of schemes in this manifest",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "The common name of the scheme",
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "description": "Aliases for the scheme name",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "latest_version": {
+                        "description": "The identifier (typically a number) of the latest released version of the scheme",
+                        "type": "string"
+                    },
+                    "versions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "version": {
+                                    "type": "string"
+                                },
+                                "url": {
+                                    "description": "Link to the directory containing the scheme. This directory should follow the PHA4GE standard for schemes",
+                                    "type": "string",
+                                    "format": "iri-reference"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }    
+}
