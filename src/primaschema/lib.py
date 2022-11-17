@@ -1,10 +1,13 @@
 import hashlib
-from collections import defaultdict
 from pathlib import Path
+import json
+import jsonschema
+import yaml
 
-import defopt
 import pandas as pd
 from Bio import SeqIO
+
+from primaschema import schema_dir
 
 
 def hash_sequences(sequences: list[str]) -> str:
@@ -97,18 +100,10 @@ def build():
     pass
 
 
-def main():
-    defopt.run(
-        {
-            "hash-bed": hash_bed,
-            "hash-ref": hash_ref,
-            "build": build,
-        },
-        no_negated_flags=True,
-        strict_kwonly=False,
-        short={},
-    )
-
-
-if __name__ == "__main__":
-    main()
+def validate_yaml(scheme_path):
+    schema_path = schema_dir / "scheme_schema.json"
+    with open(schema_path, "r") as schema_fh:
+        schema = json.load(schema_fh)
+    with open(scheme_path, "r") as scheme_fh:
+        scheme = yaml.safe_load(scheme_fh)
+    return jsonschema.validate(scheme, schema=schema)

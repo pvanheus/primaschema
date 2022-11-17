@@ -27,7 +27,9 @@ dependencies = [
     "defopt == 6.4.0",
     "pandas == 1.4.3",
     "pre-commit",
-    "pytest"
+    "pytest",
+    "jsonschema",
+    "pyyaml",
 ]
 dynamic = ["version"]
 [project.scripts]

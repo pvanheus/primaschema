@@ -1,4 +1,3 @@
-import sys
 import defopt
 
 from pathlib import Path
@@ -28,6 +27,10 @@ def build():
     pass
 
 
+def validate(scheme_path: str):
+    print(lib.validate_yaml(scheme_path))
+
+
 def main():
     defopt.run(
         {
@@ -35,6 +38,7 @@ def main():
             "hash-primer-bed": hash_primer_bed,
             "hash-scheme-bed": hash_scheme_bed,
             "build": build,
+            "validate": validate,
         },
         no_negated_flags=True,
         strict_kwonly=False,

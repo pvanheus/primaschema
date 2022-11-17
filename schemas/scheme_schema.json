@@ -83,12 +83,16 @@
             "type": "string"
         },
         "primer_checksum": {
-            "description": "Checksum for the primer scheme BED file, in format checksum_type:checksum, where hash is lowercase name of checksum generator e.g. primascheme",
+            "description": "Checksum for the primer scheme BED file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema",
             "type": "string"
         },
-        "citation": {
-            "description": "Link to publication describing the scheme (DOIs preferred when available)",
-            "type": "string"
+        "citations": {
+            "description": "Links to publications describing the scheme (DOIs preferred when available)",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "uniqueItems": true
         },
         "derived_from": {
             "description": "Link to repository of the primer scheme that this scheme was derived from.",
