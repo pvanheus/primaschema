@@ -5,6 +5,10 @@
     "description": "A PrimalSeq Amplicon Scheme",
     "type": "object",
     "properties": {
+        "schema_version": {
+            "description": "The version fo the schema that this scheme description complies with. Currently should be 1-0-0",
+            "type": "string"
+        },
         "name": {
             "description": "The canonical name of the primer scheme",
             "type": "string"
@@ -59,40 +63,48 @@
                     "url": {
                         "description": "URL to page describing primer or kit product",
                         "type": "string"
+                    },
+                    "kit_name": {
+                        "description": "Vendor-specific product name for primer kit"
                     }
-                }
+                },
+                "required": [
+                    "name",
+                    "url"
+                ]
             }
         },
         "amplicon_size": {
             "description": "The length (in base pairs) of an amplicon in the primer scheme",
             "type": "integer"
         },
-        "bed_url": {
-            "description": "Link to location where BED file for scheme can be downloaded",
+        "repository_url": {
+            "description": "Web location where primer scheme repository can be found",
             "type": "string"
         },
-        "bed_checksum": {
-            "description": "Checksum for the primer scheme BED file, in format hash:checksum, where hash is lowercase name of hash e.g. sha256",
-            "type": "string"
-        },
-        "reference_url": {
-            "description": "URL for reference sequence that the primer scheme refers to",
-            "type": "string"
-        },
-        "reference_checksum": {
-            "description": "Checksum for the reference sequence, format as described for bed_checksum",
+        "primer_checksum": {
+            "description": "Checksum for the primer scheme BED file, in format checksum_type:checksum, where hash is lowercase name of checksum generator e.g. primascheme",
             "type": "string"
         },
         "citation": {
             "description": "Link to publication describing the scheme (DOIs preferred when available)",
             "type": "string"
+        },
+        "derived_from": {
+            "description": "Link to repository of the primer scheme that this scheme was derived from.",
+            "type": "string"
+        },
+        "notes": {
+            "description": "Notes on the primer scheme",
+            "type": "string"
         }
     },
     "required": [
+        "schema_version",
         "name",
         "organism",
         "developers",
         "amplicon_size",
-        "bed_url"
+        "repository_url"
     ]
 }
