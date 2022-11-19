@@ -11,8 +11,13 @@ from primaschema import schema_dir
 
 
 def hash_sequences(sequences: list[str]) -> str:
-    sequences = sorted(sequences)
-    concatenated_seqs = ",".join(sequences).upper()
+    """
+    Normalise by uppercasing and sorting sequences
+    Check for non-ACGT chars
+    Return the sha256 hex digest of the comma delimited normalised sequence list
+    """
+    sequences = sorted(map(str.upper, sequences))
+    concatenated_seqs = ",".join(sequences)
     chars_in_concatenated_seqs = set("".join(sequences))
     allowed_chars = set("ACGT")
     if not chars_in_concatenated_seqs <= allowed_chars:

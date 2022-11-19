@@ -68,3 +68,9 @@ def test_eden_v1_schema():
 
 def test_artic_v41_schema():
     lib.validate_yaml(f"{data_dir}/primer-schemes/artic/v4.1/scheme.yaml")
+
+
+def test_checksum_normalisation_case():
+    seqs_a = ["ACGT", "cagt"]
+    seqs_b = ["ACGT", "cagt"]
+    assert lib.hash_sequences(seqs_a) == lib.hash_sequences(seqs_b)

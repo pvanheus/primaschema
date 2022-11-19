@@ -1,3 +1,5 @@
+import sys
+
 import defopt
 
 from pathlib import Path
@@ -7,19 +9,19 @@ import primaschema.lib as lib
 
 def hash_primer_bed(bed_path: Path):
     hex_digest = lib.hash_primer_bed(bed_path)
-    # print("BED checksum:", file=sys.stderr)
+    print("BED checksum:", file=sys.stderr)
     print(hex_digest)
 
 
 def hash_scheme_bed(bed_path: Path, fasta_path: Path):
     hex_digest = lib.hash_scheme_bed(bed_path, fasta_path)
-    # print("BED checksum:", file=sys.stderr)
+    print("BED checksum:", file=sys.stderr)
     print(hex_digest)
 
 
 def hash_ref(ref_path: Path):
     hex_digest = lib.hash_ref(ref_path)
-    # print("Reference checksum:", file=sys.stderr)
+    print("Reference checksum:", file=sys.stderr)
     print(hex_digest)
 
 
