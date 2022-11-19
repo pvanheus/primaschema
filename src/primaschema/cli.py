@@ -1,4 +1,5 @@
 import sys
+import logging
 
 import defopt
 
@@ -7,14 +8,11 @@ from pathlib import Path
 import primaschema.lib as lib
 
 
-def hash_primer_bed(bed_path: Path):
-    hex_digest = lib.hash_primer_bed(bed_path)
-    print("BED checksum:", file=sys.stderr)
-    print(hex_digest)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
-def hash_scheme_bed(bed_path: Path, fasta_path: Path):
-    hex_digest = lib.hash_scheme_bed(bed_path, fasta_path)
+def hash_bed(bed_path: Path):
+    hex_digest = lib.hash_bed(bed_path)
     print("BED checksum:", file=sys.stderr)
     print(hex_digest)
 
@@ -25,22 +23,21 @@ def hash_ref(ref_path: Path):
     print(hex_digest)
 
 
-def build():
-    pass
+def validate(scheme_dir: Path):
+    return lib.validate(scheme_dir)
 
 
-def validate(scheme_path: str):
-    print(lib.validate_yaml(scheme_path))
+def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
+    lib.build(scheme_dir, out_dir=out_dir, force=force)
 
 
 def main():
     defopt.run(
         {
             "hash-ref": hash_ref,
-            "hash-primer-bed": hash_primer_bed,
-            "hash-scheme-bed": hash_scheme_bed,
-            "build": build,
+            "hash-bed": hash_bed,
             "validate": validate,
+            "build": build,
         },
         no_negated_flags=True,
         strict_kwonly=False,
