@@ -86,6 +86,10 @@
             "description": "Checksum for the primer scheme BED file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema",
             "type": "string"
         },
+        "reference_checksum": {
+            "description": "Checksum for the reference FASTA file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema",
+            "type": "string"
+        },
         "citations": {
             "description": "Links to publications describing the scheme (DOIs preferred when available)",
             "type": "array",

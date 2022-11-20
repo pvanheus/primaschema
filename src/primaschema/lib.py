@@ -231,12 +231,12 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     except FileExistsError:
         raise FileExistsError(f"Output directory {out_dir} already exists")
     if not scheme.get("primer_checksum"):
-        scheme["primer__checksum"] == hash_bed(scheme_dir / f"{primary_bed_type}.bed")
+        scheme["primer_checksum"] = hash_bed(scheme_dir / f"{primary_bed_type}.bed")
     if not scheme.get("reference_checksum"):
-        scheme["reference_checksum"] == hash_ref(scheme_dir / "reference.fasta")
+        scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
     with open(out_dir / "scheme.yaml", "w") as scheme_fh:
         logging.info("Writing scheme.yaml with checksums")
-        yaml.dump(scheme, scheme_fh)
+        yaml.dump(scheme, scheme_fh, sort_keys=False)
     if primary_bed_type == "scheme":
         logging.info("Generating primer.bed from scheme.bed and reference.fasta")
         convert_scheme_bed_to_primer_bed(
