@@ -235,7 +235,7 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     if not scheme.get("reference_checksum"):
         scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
     with open(out_dir / "scheme.yaml", "w") as scheme_fh:
-        logging.info("Writing scheme.yaml with checksums")
+        logging.info(f"Writing {out_dir}/scheme.yaml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
     if primary_bed_type == "scheme":
         logging.info("Generating primer.bed from scheme.bed and reference.fasta")
@@ -246,5 +246,7 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
             force=force,
         )
     else:
-        logging.info("Copying primer.bed")
+        logging.info(f"Copying primer.bed to {out_dir}/primer.bed")
         shutil.copy(scheme_dir / "primer.bed", out_dir)
+    logging.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
+    shutil.copy(scheme_dir / "reference.fasta", out_dir)
