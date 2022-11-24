@@ -194,8 +194,8 @@ def infer_primary_bed_type(scheme_dir: Path) -> str:
 def validate(scheme_dir: Path):
     primary_bed_type = infer_primary_bed_type(scheme_dir)
     validate_bed(scheme_dir / f"{primary_bed_type}.bed", bed_type=primary_bed_type)
-    validate_yaml(scheme_dir / "scheme.yaml")
-    scheme = parse_scheme(scheme_dir / "scheme.yaml")
+    validate_yaml(scheme_dir / "info.yaml")
+    scheme = parse_scheme(scheme_dir / "info.yaml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
     primer_checksum = hash_bed(scheme_dir / f"{primary_bed_type}.bed")
@@ -216,13 +216,13 @@ def validate(scheme_dir: Path):
 def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     """
     Build a PHA4GE primer scheme bundle.
-    Given a directory path containing scheme.yaml, reference.fasta, and either
-    primer.bed or reference.bed, generate a directory containing scheme.yaml including
+    Given a directory path containing info.yaml, reference.fasta, and either
+    primer.bed or reference.bed, generate a directory containing info.yaml including
     primer and reference checksums and a canonical primer.bed representation.
     """
     validate(scheme_dir)
     primary_bed_type = infer_primary_bed_type(scheme_dir)
-    scheme = parse_scheme(scheme_dir / "scheme.yaml")
+    scheme = parse_scheme(scheme_dir / "info.yaml")
     from pprint import pprint
 
     out_dir = Path(scheme["name"])
@@ -234,8 +234,8 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
         scheme["primer_checksum"] = hash_bed(scheme_dir / f"{primary_bed_type}.bed")
     if not scheme.get("reference_checksum"):
         scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
-    with open(out_dir / "scheme.yaml", "w") as scheme_fh:
-        logging.info(f"Writing {out_dir}/scheme.yaml")
+    with open(out_dir / "info.yaml", "w") as scheme_fh:
+        logging.info(f"Writing {out_dir}/info.yaml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
     if primary_bed_type == "scheme":
         logging.info("Generating primer.bed from scheme.bed and reference.fasta")

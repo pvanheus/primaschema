@@ -28,21 +28,21 @@ options:
 
 
 % ls tests/data/primer-schemes/eden/v1
-reference.fasta	scheme.bed	scheme.yaml
+reference.fasta	scheme.bed	info.yaml
 
 
 % primaschema build tests/data/primer-schemes/eden/v1 --force
 INFO: Scheme bed file has the expected number of columns (6)
-INFO: Writing scheme.yaml with checksums
+INFO: Writing info.yaml with checksums
 INFO: Generating primer.bed from scheme.bed and reference.fasta
 
 
 % ls eden-v1
-primer.bed	scheme.yaml
+primer.bed	info.yaml
 
 ```
 
-## `scheme.yaml` example
+## `info.yaml` example
 
 ```yaml
 schema_version: 1-0-0

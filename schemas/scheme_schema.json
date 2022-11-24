@@ -69,8 +69,7 @@
                     }
                 },
                 "required": [
-                    "name",
-                    "url"
+                    "name"
                 ]
             }
         },
@@ -104,7 +103,10 @@
         },
         "notes": {
             "description": "Notes on the primer scheme",
-            "type": "string"
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "required": [
