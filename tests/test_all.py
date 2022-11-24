@@ -8,9 +8,9 @@ import primaschema.lib as lib
 data_dir = Path("tests/data")
 
 
-def run(cmd, cwd="./"):  # Helper for CLI testing
+def run(cmd, cwd=data_dir):  # Helper for CLI testing
     return subprocess.run(
-        cmd, cwd=data_dir, shell=True, check=True, text=True, capture_output=True
+        cmd, cwd=cwd, shell=True, check=True, text=True, capture_output=True
     )
 
 
@@ -96,3 +96,8 @@ def test_build_from_primer_bed():
 def test_build_from_scheme_bed():
     run_cmd = run("primaschema build primer-schemes/eden/v1 --force")
     run("rm -rf eden-v1")
+
+
+def test_build_recursively():
+    lib.build_recursively(data_dir / "primer-schemes")
+    run("rm -rf built", cwd="./")

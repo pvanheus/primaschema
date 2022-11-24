@@ -78,7 +78,7 @@
             "type": "integer"
         },
         "repository_url": {
-            "description": "Web location where primer scheme repository can be found",
+            "description": "URL of the primer scheme repository",
             "type": "string"
         },
         "primer_checksum": {
@@ -90,7 +90,7 @@
             "type": "string"
         },
         "citations": {
-            "description": "Links to publications describing the scheme (DOIs preferred when available)",
+            "description": "URLs of publications describing the scheme (DOIs preferred when available)",
             "type": "array",
             "items": {
                 "type": "string"
@@ -98,7 +98,7 @@
             "uniqueItems": true
         },
         "derived_from": {
-            "description": "Link to repository of the primer scheme that this scheme was derived from.",
+            "description": "Canonical name of the primer scheme from which this scheme was derived",
             "type": "string"
         },
         "notes": {

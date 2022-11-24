@@ -71,6 +71,16 @@ def six_to_seven(
     )
 
 
+def build_recursively(root_dir: Path, force: bool = False):
+    """
+    Recursively build a primer scheme bundles in the provided directory
+
+    :arg root_dir: Path of scheme.bed file
+    :arg force: Overwrite existing schemes and ignore hash check failures
+    """
+    lib.build_recursively(root_dir=root_dir, force=force)
+
+
 def main():
     defopt.run(
         {
@@ -78,6 +88,7 @@ def main():
             "hash-bed": hash_bed,
             "validate": validate,
             "build": build,
+            "build-recursively": build_recursively,
             "6to7": six_to_seven,
         },
         no_negated_flags=True,

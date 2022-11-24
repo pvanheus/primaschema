@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import os
 import shutil
 from pathlib import Path
 from typing import Literal
@@ -191,7 +192,7 @@ def infer_primary_bed_type(scheme_dir: Path) -> str:
     return primary_bed_type
 
 
-def validate(scheme_dir: Path):
+def validate(scheme_dir: Path, force: bool = False):
     primary_bed_type = infer_primary_bed_type(scheme_dir)
     validate_bed(scheme_dir / f"{primary_bed_type}.bed", bed_type=primary_bed_type)
     validate_yaml(scheme_dir / "info.yaml")
@@ -200,13 +201,18 @@ def validate(scheme_dir: Path):
     existing_reference_checksum = scheme.get("reference_checksum")
     primer_checksum = hash_bed(scheme_dir / f"{primary_bed_type}.bed")
     reference_checksum = hash_ref(scheme_dir / "reference.fasta")
-    if existing_primer_checksum and not primer_checksum == existing_primer_checksum:
+    if (
+        existing_primer_checksum
+        and not primer_checksum == existing_primer_checksum
+        and not force
+    ):
         raise RuntimeError(
             f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
         )
     if (
         existing_reference_checksum
         and not reference_checksum == existing_reference_checksum
+        and not force
     ):
         raise RuntimeError(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
@@ -220,14 +226,14 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     primer.bed or reference.bed, generate a directory containing info.yaml including
     primer and reference checksums and a canonical primer.bed representation.
     """
-    validate(scheme_dir)
+    validate(scheme_dir=scheme_dir, force=force)
     primary_bed_type = infer_primary_bed_type(scheme_dir)
     scheme = parse_scheme(scheme_dir / "info.yaml")
     from pprint import pprint
 
-    out_dir = Path(scheme["name"])
+    out_dir = Path("built") / scheme["name"]
     try:
-        out_dir.mkdir(exist_ok=force)
+        out_dir.mkdir(parents=True, exist_ok=force)
     except FileExistsError:
         raise FileExistsError(f"Output directory {out_dir} already exists")
     if not scheme.get("primer_checksum"):
@@ -250,3 +256,25 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
         shutil.copy(scheme_dir / "primer.bed", out_dir)
     logging.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
     shutil.copy(scheme_dir / "reference.fasta", out_dir)
+
+
+def build_recursively(root_dir: Path, force: bool = False):
+    """Build all schemes in a directory tree"""
+
+    def scan(path):
+        """Recursively yield DirEntry objects"""
+        for entry in os.scandir(path):
+            if entry.is_dir(follow_symlinks=False):
+                yield from scan(entry.path)
+            else:
+                yield entry
+
+    schemes_paths = {}
+    for entry in scan(root_dir):
+        if entry.is_file() and entry.name == "info.yaml":
+            scheme_dir = Path(entry.path).parent
+            scheme = scheme_dir.name
+            schemes_paths[scheme] = scheme_dir
+
+    for scheme, path in schemes_paths.items():
+        build(scheme_dir=path, force=force)
