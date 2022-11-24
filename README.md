@@ -13,34 +13,28 @@ pip install https://github.com/bede/primaschema
 
 ```
 % primaschema --help
-usage: primaschema [-h] [--version] {hash-ref,hash-bed,validate,build} ...
+usage: primaschema [-h] [--version] {hash-ref,hash-bed,validate,build,6to7} ...
 
 positional arguments:
-  {hash-ref,hash-bed,validate,build}
-    hash-ref
-    hash-bed
-    validate
-    build
+  {hash-ref,hash-bed,validate,build,6to7}
+    hash-ref            Generate reference sequence checksum
+    hash-bed            Generate a bed file checksum
+    validate            Validate a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
+    build               Build a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
+    6to7                Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
 
 options:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
 
 
-% ls tests/data/primer-schemes/eden/v1
-reference.fasta	scheme.bed	info.yaml
-
-
-% primaschema build tests/data/primer-schemes/eden/v1 --force
+% primaschema build tests/data/primer-schemes/eden/v1
 INFO: Scheme bed file has the expected number of columns (6)
 INFO: Writing info.yaml with checksums
 INFO: Generating primer.bed from scheme.bed and reference.fasta
-
-
-% ls eden-v1
-primer.bed	info.yaml
-
 ```
+
+
 
 ## `info.yaml` example
 
@@ -62,7 +56,8 @@ amplicon_size: 2500
 repository_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/eden/v1
 citations:
   - https://www.protocols.io/view/sars-cov-2-genome-sequencing-using-long-pooled-amp-kxygxeob4v8j/v1
-notes: Protocol includes addendum for ONT sequencing
+notes:
+  - Protocol includes addendum for ONT sequencing
 primer_checksum: "primaschema:9e4c6a3b84cbd76cb3e38b893d0322b5799ecafe28d8cf7bf347ce6dcc5ee8cb"
 reference_checksum: "primaschema:7d5621cd3b3e498d0c27fcca9d3d3c5168c7f3d3f9776f3005c7011bd90068ca"
 ```

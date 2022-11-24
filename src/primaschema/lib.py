@@ -85,7 +85,7 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
 
 def convert_scheme_bed_to_primer_bed(
     bed_path: Path, fasta_path: Path, out_dir: Path = Path(), force: bool = False
-) -> pd.DataFrame:
+):
     ref_record = SeqIO.read(fasta_path, "fasta")
     df = pd.read_csv(
         bed_path,
