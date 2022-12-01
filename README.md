@@ -1,3 +1,4 @@
+![Tests](https://github.com/pha4ge/primaschema/actions/workflows/tests.yml/badge.svg)
 # Primaschema
 
 **Currently under active development and unstable**. Generates PHA4GE-compatible tiling amplicon scheme bundles from either 6 or 7 column Primal Scheme-like bed files and metadata contained in a YAML file.

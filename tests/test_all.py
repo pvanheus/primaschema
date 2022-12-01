@@ -99,5 +99,5 @@ def test_build_from_scheme_bed():
 
 
 def test_build_recursively():
-    lib.build_recursively(data_dir / "primer-schemes")
+    lib.build_recursively(data_dir / "primer-schemes", force=True)
     run("rm -rf built", cwd="./")
