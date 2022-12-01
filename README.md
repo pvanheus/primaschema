@@ -5,7 +5,8 @@
 
 ## Install (Python 3.10+)
 ```
-pip install https://github.com/pha4ge/primaschema
+pip install primaschema  # Latest release
+pip install https://github.com/pha4ge/primascheman  # Main branch
 ```
 
 
@@ -67,7 +68,7 @@ reference_checksum: "primaschema:7d5621cd3b3e498d0c27fcca9d3d3c5168c7f3d3f9776f3
 
 ## Development
 
-```
+```shell
 # Inside a clean Python 3.10+ environment
 git clone https://github.com/pha4ge/primaschema.git
 cd primaschema

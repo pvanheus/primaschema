@@ -17,24 +17,22 @@ SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "str
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
 
 
-def hash_sequences(sequences: list[str]) -> str:
-    """
-    Normalise by uppercasing and sorting sequences
-    Check for non-ACGT chars
-    Return the sha256 hex digest of the comma delimited normalised sequence list
-    """
-    sequences = sorted(map(str.upper, sequences))
-    concatenated_seqs = ",".join(sequences)
-    chars_in_concatenated_seqs = set("".join(sequences))
-    allowed_chars = set("ACGT")
-    if not chars_in_concatenated_seqs <= allowed_chars:
-        raise RuntimeError("Found illegal characters in primer sequences")
-    hex_digest = hashlib.sha256(concatenated_seqs.encode()).hexdigest()
-    return f"primaschema:{hex_digest}"
+def hash_string(string: str) -> str:
+    """Normalise case, sorting, terminal whitespace, and return prefixed SHA256 digest"""
+    checksum = hashlib.sha256(str(string).strip().upper().encode()).hexdigest()
+    return f"primaschema:{checksum}"
+
+
+def hash_primer_bed_df(df: pd.DataFrame) -> str:
+    """Normalise case, sorting, terminal whitespace, and return prefixed SHA256 digest"""
+    df["sequence"] = df["sequence"].str.strip().str.upper()
+    df = df.sort_values(["chromStart", "chromStart", "strand", "sequence"])
+    string = df[["chromStart", "chromStart", "strand", "sequence"]].to_csv(index=False)
+    return hash_string(string)
 
 
 def hash_primer_bed(bed_path: Path):
-    """Hash a 7 column {scheme}.primer.bed file"""
+    """Hash a 7 column primer.bed file"""
     df = pd.read_csv(
         bed_path,
         sep="\t",
@@ -49,14 +47,12 @@ def hash_primer_bed(bed_path: Path):
             sequence=str,
         ),
     )
-    return hash_sequences(df["sequence"].tolist())
+    return hash_primer_bed_df(df)
 
 
 def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
     """
-    Hash a 6 column {scheme}.scheme.bed file
-
-    Seqs need to first be retrieved and sorted against in order to normalise prior to hashing
+    Hash a 6 column scheme.bed file by first converting to 7 column primer.bed
     """
     ref_record = SeqIO.read(fasta_path, "fasta")
     df = pd.read_csv(
@@ -72,16 +68,17 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
             strand=str,
         ),
     )
-    primer_sequences = []
-    for r in df.to_dict("records"):
+    records = df.to_dict("records")
+    for r in records:
         start_pos, end_pos = r["chromStart"], r["chromEnd"]
         if r["strand"] == "+":
-            primer_sequences.append(str(ref_record.seq[start_pos:end_pos]))
+            r["sequence"] = str(ref_record.seq[start_pos:end_pos])
+        elif r["strand"] == "-":
+            r["sequence"] = str(ref_record.seq[start_pos:end_pos].reverse_complement())
         else:
-            primer_sequences.append(
-                str(ref_record.seq[start_pos:end_pos].reverse_complement())
-            )
-    return hash_sequences(primer_sequences)
+            raise RuntimeError(f"Invalid strand for BED record {r}")
+    bed7_df = pd.DataFrame(records)
+    return hash_primer_bed_df(bed7_df)
 
 
 def convert_scheme_bed_to_primer_bed(
@@ -125,8 +122,7 @@ def hash_bed(bed_path: Path) -> str:
 
 def hash_ref(ref_path: Path):
     record = SeqIO.read(ref_path, "fasta")
-    checksum = hashlib.sha256(str(record.seq).upper().encode()).hexdigest()
-    return f"primaschema:{checksum}"
+    return hash_string(record.seq)
 
 
 def count_tsv_columns(bed_path: Path) -> int:
