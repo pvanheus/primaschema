@@ -1,11 +1,11 @@
-![Tests](https://github.com/pha4ge/primaschema/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/pha4ge/primaschema/actions/workflows/test.yml/badge.svg)
 # Primaschema
 
 **Currently under active development and unstable**. Generates PHA4GE-compatible tiling amplicon scheme bundles from either 6 or 7 column Primal Scheme-like bed files and metadata contained in a YAML file.
 
 ## Install (Python 3.10+)
 ```
-pip install https://github.com/bede/primaschema
+pip install https://github.com/pha4ge/primaschema
 ```
 
 
@@ -65,8 +65,12 @@ reference_checksum: "primaschema:7d5621cd3b3e498d0c27fcca9d3d3c5168c7f3d3f9776f3
 
 
 
-## Test
+## Development
 
 ```
-$ pytest
+# Inside a clean Python 3.10+ environment
+git clone https://github.com/pha4ge/primaschema.git
+cd primaschema
+pip install --editable ./
+pytest
 ```
