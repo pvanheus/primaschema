@@ -68,11 +68,15 @@ def test_artic_v41_schema():
     lib.validate_yaml(f"{data_dir}/primer-schemes/artic/v4.1/info.yaml")
 
 
-# Needs updating now that hash function. Needs BEDs creating for this case
+# Needs updating since reverting hash function to consume coordinates again. Needs BEDs creating for this case
 # def test_checksum_case_normalisation():
 #     seqs_a = ["ACGT", "CAGT"]
 #     seqs_b = ["ACGT", "cagt"]
 #     assert lib.hash_sequences(seqs_a) == lib.hash_sequences(seqs_b)
+def test_checksum_case_normalisation():
+    assert lib.hash_bed(
+        data_dir / "broken/different-case/eden-v1.primer.bed"
+    ) == lib.hash_bed(data_dir / "broken/different-case/eden-v1-modified.primer.bed")
 
 
 def test_validate_artic_v41():
