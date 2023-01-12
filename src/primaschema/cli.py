@@ -44,6 +44,16 @@ def validate(scheme_dir: Path):
     return lib.validate(scheme_dir)
 
 
+def validate_recursively(root_dir: Path, force: bool = False):
+    """
+    Recursively validate primer scheme bundles in the specified directory
+
+    :arg root_dir: Path in which to search for schemes
+    :arg force: Overwrite existing schemes and ignore hash check failures
+    """
+    lib.validate_recursively(root_dir=root_dir, force=force)
+
+
 def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     """
     Build a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
@@ -53,6 +63,16 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     :arg force: Overwrite existing output files
     """
     lib.build(scheme_dir=scheme_dir, out_dir=out_dir, force=force)
+
+
+def build_recursively(root_dir: Path, force: bool = False):
+    """
+    Recursively build primer scheme bundles in the specified directory
+
+    :arg root_dir: Path in which to search for schemes
+    :arg force: Overwrite existing schemes and ignore hash check failures
+    """
+    lib.build_recursively(root_dir=root_dir, force=force)
 
 
 def six_to_seven(
@@ -71,22 +91,13 @@ def six_to_seven(
     )
 
 
-def build_recursively(root_dir: Path, force: bool = False):
-    """
-    Recursively build a primer scheme bundles in the provided directory
-
-    :arg root_dir: Path of scheme.bed file
-    :arg force: Overwrite existing schemes and ignore hash check failures
-    """
-    lib.build_recursively(root_dir=root_dir, force=force)
-
-
 def main():
     defopt.run(
         {
             "hash-ref": hash_ref,
             "hash-bed": hash_bed,
             "validate": validate,
+            "validate-recursively": validate_recursively,
             "build": build,
             "build-recursively": build_recursively,
             "6to7": six_to_seven,

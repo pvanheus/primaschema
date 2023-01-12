@@ -13,8 +13,18 @@ from Bio import SeqIO
 
 from primaschema import schema_dir
 
+
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
+
+
+def scan(path):
+    """Recursively yield DirEntry objects"""
+    for entry in os.scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            yield from scan(entry.path)
+        else:
+            yield entry
 
 
 def hash_string(string: str) -> str:
@@ -153,9 +163,7 @@ def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
             f"Scheme bed files should have 6 columns: {SCHEME_BED_FIELDS}"
         )
     else:
-        logging.info(
-            f"{bed_type.title()} bed file has the expected number of columns ({bed_columns})"
-        )
+        logging.info(f"Detected {bed_type} bed file with {bed_columns} columns")
 
     if bed_type == "primer":
         hash_primer_bed(bed_path)
@@ -189,6 +197,7 @@ def infer_primary_bed_type(scheme_dir: Path) -> str:
 
 
 def validate(scheme_dir: Path, force: bool = False):
+    logging.info(f"Validating {scheme_dir}")
     primary_bed_type = infer_primary_bed_type(scheme_dir)
     validate_bed(scheme_dir / f"{primary_bed_type}.bed", bed_type=primary_bed_type)
     validate_yaml(scheme_dir / "info.yaml")
@@ -221,6 +230,20 @@ def validate(scheme_dir: Path, force: bool = False):
         logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
+    logging.info("Validation successful")
+
+
+def validate_recursively(root_dir: Path, force: bool = False):
+    """Validate all schemes in a directory tree"""
+    schemes_paths = {}
+    for entry in scan(root_dir):
+        if entry.is_file() and entry.name == "info.yaml":
+            scheme_dir = Path(entry.path).parent
+            scheme = scheme_dir.name
+            schemes_paths[scheme] = scheme_dir
+
+    for scheme, path in schemes_paths.items():
+        validate(scheme_dir=path, force=force)
 
 
 def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
@@ -264,15 +287,6 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
 
 def build_recursively(root_dir: Path, force: bool = False):
     """Build all schemes in a directory tree"""
-
-    def scan(path):
-        """Recursively yield DirEntry objects"""
-        for entry in os.scandir(path):
-            if entry.is_dir(follow_symlinks=False):
-                yield from scan(entry.path)
-            else:
-                yield entry
-
     schemes_paths = {}
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yaml":
