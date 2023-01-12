@@ -6,7 +6,7 @@
 ## Install (Python 3.10+)
 ```
 pip install primaschema  # Latest release
-pip install https://github.com/pha4ge/primascheman  # Main branch
+pip install https://github.com/pha4ge/primaschema  # Main branch
 ```
 
 

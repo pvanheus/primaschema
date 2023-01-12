@@ -205,12 +205,20 @@ def validate(scheme_dir: Path, force: bool = False):
         raise RuntimeError(
             f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
         )
+    elif not primer_checksum == existing_primer_checksum:
+        logging.warning(
+            f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
+        )
     if (
         existing_reference_checksum
         and not reference_checksum == existing_reference_checksum
         and not force
     ):
         raise RuntimeError(
+            f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
+        )
+    elif not reference_checksum == existing_reference_checksum:
+        logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
 
