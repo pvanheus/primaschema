@@ -33,17 +33,26 @@ def hash_string(string: str) -> str:
     return f"primaschema:{checksum}"
 
 
-def hash_primer_bed_df(df: pd.DataFrame) -> str:
-    """Normalise case, sorting, terminal whitespace, and return prefixed SHA256 digest"""
-    df["sequence"] = df["sequence"].str.strip().str.upper()
-    df = df.sort_values(["chromStart", "chromStart", "strand", "sequence"])
-    string = df[["chromStart", "chromStart", "strand", "sequence"]].to_csv(index=False)
-    return hash_string(string)
+def parse_scheme_bed(bed_path: Path) -> pd.DataFrame:
+    """Parse a 6 column scheme.bed bed file"""
+    return pd.read_csv(
+        bed_path,
+        sep="\t",
+        names=SCHEME_BED_FIELDS,
+        dtype=dict(
+            chrom=str,
+            chromStart=int,
+            chromEnd=int,
+            name=str,
+            poolName=str,
+            strand=str,
+        ),
+    )
 
 
-def hash_primer_bed(bed_path: Path):
-    """Hash a 7 column primer.bed file"""
-    df = pd.read_csv(
+def parse_primer_bed(bed_path: Path) -> pd.DataFrame:
+    """Parse a 7 column primer.bed bed file"""
+    return pd.read_csv(
         bed_path,
         sep="\t",
         names=PRIMER_BED_FIELDS,
@@ -57,6 +66,33 @@ def hash_primer_bed(bed_path: Path):
             sequence=str,
         ),
     )
+
+
+def normalise_primer_bed_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    - Removes terminal whitespace
+    - Normalises case
+    - Sorts by chromStart, chromStart, strand, sequence
+    - Removes duplicate records, collapsing alts with same coords if backfilled from ref
+    """
+    df["sequence"] = df["sequence"].str.strip().str.upper()
+    df = df.sort_values(
+        ["chromStart", "chromStart", "strand", "sequence"]
+    ).drop_duplicates()
+    return df
+
+
+def hash_primer_bed_df(df: pd.DataFrame) -> str:
+    """
+    Returns prefixed SHA256 digest from stringified dataframe
+    """
+    string = df[["chromStart", "chromStart", "strand", "sequence"]].to_csv(index=False)
+    return hash_string(string)
+
+
+def hash_primer_bed(bed_path: Path):
+    """Hash a 7 column primer.bed file"""
+    df = parse_primer_bed(bed_path)
     return hash_primer_bed_df(df)
 
 
@@ -64,20 +100,9 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
     """
     Hash a 6 column scheme.bed file by first converting to 7 column primer.bed
     """
+    logging.info(f"Hashing scheme.bed using reference backfill")
     ref_record = SeqIO.read(fasta_path, "fasta")
-    df = pd.read_csv(
-        bed_path,
-        sep="\t",
-        names=SCHEME_BED_FIELDS,
-        dtype=dict(
-            chrom=str,
-            chromStart=int,
-            chromEnd=int,
-            name=str,
-            poolName=str,
-            strand=str,
-        ),
-    )
+    df = parse_scheme_bed(bed_path)
     records = df.to_dict("records")
     for r in records:
         start_pos, end_pos = r["chromStart"], r["chromEnd"]
@@ -95,19 +120,7 @@ def convert_scheme_bed_to_primer_bed(
     bed_path: Path, fasta_path: Path, out_dir: Path = Path(), force: bool = False
 ):
     ref_record = SeqIO.read(fasta_path, "fasta")
-    df = pd.read_csv(
-        bed_path,
-        sep="\t",
-        names=SCHEME_BED_FIELDS,
-        dtype=dict(
-            chrom=str,
-            chromStart=int,
-            chromEnd=int,
-            name=str,
-            poolName=str,
-            strand=str,
-        ),
-    )
+    df = parse_scheme_bed(bed_path)
     records = df.to_dict("records")
     for r in records:
         start_pos, end_pos = r["chromStart"], r["chromEnd"]
@@ -296,3 +309,7 @@ def build_recursively(root_dir: Path, force: bool = False):
 
     for scheme, path in schemes_paths.items():
         build(scheme_dir=path, force=force)
+
+
+# def diff(bed1_path: Path, bed2_path: Path):
+#     """Show differences between two primer.bed"""
