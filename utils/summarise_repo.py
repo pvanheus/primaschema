@@ -40,14 +40,14 @@ if __name__ == '__main__':
                     if key in new_schemes:
                         record = new_schemes[key]
                         url = f'{base_url}/{organism}/{scheme}/{version}'
-                        new_version = dict(version=version, url=url)
+                        new_version = dict(version=version, repository=url)
                         record['versions'].append(new_version)
                     else:
                         url = f'{base_url}/{organism}/{scheme}/{version}'
                         record = dict(
                             name=scheme,
                             organism=organism_dict[organism],
-                            versions=[dict(version=version, url=url)])
+                            versions=[dict(version=version, repository=url)])
                         new_schemes[key] = record
 
     schemes_added = []
