@@ -7,10 +7,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "primaschema"
-description = "Generate PHA4GE-compatible primer scheme descriptions"
+description = "A toolkit for primer scheme defintions"
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = ["genomics", "epidemiology"]
+keywords = ["genomics"]
 license = {text = "MIT License"}
 classifiers = [
     "Framework :: Django",

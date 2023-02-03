@@ -5,7 +5,7 @@ import pytest
 
 import primaschema.lib as lib
 
-data_dir = Path("tests/data")
+data_dir = Path("test/data")
 
 
 def run(cmd, cwd=data_dir):  # Helper for CLI testing
@@ -20,7 +20,7 @@ def test_cli_version():
 
 def test_hash_ref():
     assert (
-        lib.hash_ref("tests/data/primer-schemes/eden/v1/reference.fasta")
+        lib.hash_ref("test/data/primer-schemes/eden/v1/reference.fasta")
         == "primaschema:7d5621cd3b3e498d0c27fcca9d3d3c5168c7f3d3f9776f3005c7011bd90068ca"
     )
 
@@ -51,11 +51,11 @@ def test_cli_scheme_bed():
 
 def test_artic_v41_scheme_hash_matches_primer_hash():
     scheme_bed_hash = lib.hash_scheme_bed(
-        "tests/data/primer-schemes/artic/v4.1/scheme.bed",
-        "tests/data/primer-schemes/artic/v4.1/reference.fasta",
+        "test/data/primer-schemes/artic/v4.1/scheme.bed",
+        "test/data/primer-schemes/artic/v4.1/reference.fasta",
     )
     primer_bed_hash = lib.hash_primer_bed(
-        "tests/data/primer-schemes/artic/v4.1/primer.bed"
+        "test/data/primer-schemes/artic/v4.1/primer.bed"
     )
     assert scheme_bed_hash == primer_bed_hash
 
@@ -115,5 +115,5 @@ def test_diff():
     assert (
         """chrom  chromStart  chromEnd                      name poolName strand                 sequence origin
 MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T        2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2"""
-        in run_cmd.stdout
+        == run_cmd.stdout.strip()
     )

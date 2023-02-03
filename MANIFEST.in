@@ -1,0 +1,2 @@
+include schema/scheme_schema.json
+include schema/manifest_schema.json
