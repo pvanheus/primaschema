@@ -311,5 +311,8 @@ def build_recursively(root_dir: Path, force: bool = False):
         build(scheme_dir=path, force=force)
 
 
-# def diff(bed1_path: Path, bed2_path: Path):
-#     """Show differences between two primer.bed"""
+def diff(bed1_path: Path, bed2_path: Path):
+    """Show symmetric differences between records in two primer.bed files"""
+    df1 = parse_primer_bed(bed1_path).assign(origin="bed1")
+    df2 = parse_primer_bed(bed2_path).assign(origin="bed2")
+    return pd.concat([df1, df2]).drop_duplicates(subset=PRIMER_BED_FIELDS, keep=False)

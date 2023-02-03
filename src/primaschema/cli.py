@@ -91,6 +91,16 @@ def six_to_seven(
     )
 
 
+def diff(bed1_path: Path, bed2_path: Path):
+    """
+    Show the symmetric difference of records in two bed files
+
+    :arg bed_path1: Path of first bed file
+    :arg bed_path2: Path o second bed file
+    """
+    print(lib.diff(bed1_path, bed2_path).to_string(index=False))
+
+
 def main():
     defopt.run(
         {
@@ -100,6 +110,7 @@ def main():
             "validate-recursively": validate_recursively,
             "build": build,
             "build-recursively": build_recursively,
+            "diff": diff,
             "6to7": six_to_seven,
         },
         no_negated_flags=True,

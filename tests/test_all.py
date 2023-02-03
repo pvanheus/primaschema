@@ -106,3 +106,14 @@ def test_build_from_scheme_bed():
 def test_build_recursively():
     lib.build_recursively(data_dir / "primer-schemes", force=True)
     run("rm -rf built", cwd="./")
+
+
+def test_diff():
+    run_cmd = run(
+        "primaschema diff primer-schemes/midnight/v1/primer.bed primer-schemes/midnight/v2/primer.bed"
+    )
+    assert (
+        """chrom  chromStart  chromEnd                      name poolName strand                 sequence origin
+MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T        2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2"""
+        in run_cmd.stdout
+    )
