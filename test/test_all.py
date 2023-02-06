@@ -36,7 +36,7 @@ def test_cli_hash_ref():
 def test_cli_hash_primer_bed():
     run_cmd = run("primaschema hash-bed primer-schemes/artic/v4.1/primer.bed")
     assert (
-        "primaschema:bca2e6513bc5a45d664f7ddb43d6b63f3a67509b4381641ee030d333d29569c5"
+        "primaschema:9005b441227985c882434ffce1e72682ea17591005f5e15c72a6fce774d630cb"
         in run_cmd.stdout
     )
 
@@ -44,7 +44,7 @@ def test_cli_hash_primer_bed():
 def test_cli_scheme_bed():
     run_cmd = run("primaschema hash-bed primer-schemes/artic/v4.1/scheme.bed")
     assert (
-        "primaschema:bca2e6513bc5a45d664f7ddb43d6b63f3a67509b4381641ee030d333d29569c5"
+        "primaschema:9005b441227985c882434ffce1e72682ea17591005f5e15c72a6fce774d630cb"
         in run_cmd.stdout
     )
 
@@ -113,7 +113,7 @@ def test_diff():
         "primaschema diff primer-schemes/midnight/v1/primer.bed primer-schemes/midnight/v2/primer.bed"
     )
     assert (
-        """chrom  chromStart  chromEnd                      name poolName strand                 sequence origin
-MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T        2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2"""
+        """chrom  chromStart  chromEnd                      name  poolName strand                 sequence origin
+MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T         2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2"""
         == run_cmd.stdout.strip()
     )

@@ -44,7 +44,7 @@ def parse_scheme_bed(bed_path: Path) -> pd.DataFrame:
             chromStart=int,
             chromEnd=int,
             name=str,
-            poolName=str,
+            poolName=int,
             strand=str,
         ),
     )
@@ -61,7 +61,7 @@ def parse_primer_bed(bed_path: Path) -> pd.DataFrame:
             chromStart=int,
             chromEnd=int,
             name=str,
-            poolName=str,
+            poolName=int,
             strand=str,
             sequence=str,
         ),
@@ -72,12 +72,12 @@ def normalise_primer_bed_df(df: pd.DataFrame) -> pd.DataFrame:
     """
     - Removes terminal whitespace
     - Normalises case
-    - Sorts by chromStart, chromStart, strand, sequence
+    - Sorts by chromStart, chromEnd, poolName, strand, sequence
     - Removes duplicate records, collapsing alts with same coords if backfilled from ref
     """
     df["sequence"] = df["sequence"].str.strip().str.upper()
     df = df.sort_values(
-        ["chromStart", "chromStart", "strand", "sequence"]
+        ["chromStart", "chromEnd", "poolName", "strand", "sequence"]
     ).drop_duplicates()
     return df
 
@@ -86,7 +86,9 @@ def hash_primer_bed_df(df: pd.DataFrame) -> str:
     """
     Returns prefixed SHA256 digest from stringified dataframe
     """
-    string = df[["chromStart", "chromStart", "strand", "sequence"]].to_csv(index=False)
+    string = df[["chromStart", "chromEnd", "poolName", "strand", "sequence"]].to_csv(
+        index=False
+    )
     return hash_string(string)
 
 
