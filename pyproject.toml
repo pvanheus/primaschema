@@ -23,9 +23,9 @@ classifiers = [
     "Operating System :: MacOS",
 ]
 dependencies = [
-    "biopython == 1.79",
+    "biopython == 1.80",
     "defopt == 6.4.0",
-    "pandas == 1.4.3",
+    "pandas >= 1.5.3",
     "pre-commit",
     "pytest",
     "jsonschema",

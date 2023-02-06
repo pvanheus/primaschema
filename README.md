@@ -5,24 +5,25 @@
 
 ## Install (Python 3.10+)
 ```
-pip install primaschema  # Latest release
 pip install https://github.com/pha4ge/primaschema  # Main branch
 ```
-
 
 
 ## Usage
 
 ```
 % primaschema --help
-usage: primaschema [-h] [--version] {hash-ref,hash-bed,validate,build,6to7} ...
+usage: primaschema [-h] [--version] {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,diff,6to7} ...
 
 positional arguments:
-  {hash-ref,hash-bed,validate,build,6to7}
+  {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,diff,6to7}
     hash-ref            Generate reference sequence checksum
     hash-bed            Generate a bed file checksum
     validate            Validate a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
+    validate-recursive  Recursively validate primer scheme bundles in the specified directory
     build               Build a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
+    build-recursive     Recursively build primer scheme bundles in the specified directory
+    diff                Show the symmetric difference of records in two bed files
     6to7                Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
 
 options:
@@ -30,7 +31,7 @@ options:
   --version             show program's version number and exit
 
 
-% primaschema build tests/data/primer-schemes/eden/v1
+% primaschema build test/data/primer-schemes/eden/v1
 INFO: Scheme bed file has the expected number of columns (6)
 INFO: Writing info.yaml with checksums
 INFO: Generating primer.bed from scheme.bed and reference.fasta

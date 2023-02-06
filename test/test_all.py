@@ -103,8 +103,8 @@ def test_build_from_scheme_bed():
     run("rm -rf eden-v1")
 
 
-def test_build_recursively():
-    lib.build_recursively(data_dir / "primer-schemes", force=True)
+def test_build_recursive():
+    lib.build_recursive(data_dir / "primer-schemes", force=True)
     run("rm -rf built", cwd="./")
 
 

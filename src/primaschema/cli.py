@@ -44,14 +44,14 @@ def validate(scheme_dir: Path):
     return lib.validate(scheme_dir)
 
 
-def validate_recursively(root_dir: Path, force: bool = False):
+def validate_recursive(root_dir: Path, force: bool = False):
     """
     Recursively validate primer scheme bundles in the specified directory
 
     :arg root_dir: Path in which to search for schemes
     :arg force: Overwrite existing schemes and ignore hash check failures
     """
-    lib.validate_recursively(root_dir=root_dir, force=force)
+    lib.validate_recursive(root_dir=root_dir, force=force)
 
 
 def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
@@ -65,14 +65,14 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     lib.build(scheme_dir=scheme_dir, out_dir=out_dir, force=force)
 
 
-def build_recursively(root_dir: Path, force: bool = False):
+def build_recursive(root_dir: Path, force: bool = False):
     """
     Recursively build primer scheme bundles in the specified directory
 
     :arg root_dir: Path in which to search for schemes
     :arg force: Overwrite existing schemes and ignore hash check failures
     """
-    lib.build_recursively(root_dir=root_dir, force=force)
+    lib.build_recursive(root_dir=root_dir, force=force)
 
 
 def six_to_seven(
@@ -107,9 +107,9 @@ def main():
             "hash-ref": hash_ref,
             "hash-bed": hash_bed,
             "validate": validate,
-            "validate-recursively": validate_recursively,
+            "validate-recursive": validate_recursive,
             "build": build,
-            "build-recursively": build_recursively,
+            "build-recursive": build_recursive,
             "diff": diff,
             "6to7": six_to_seven,
         },

@@ -246,7 +246,7 @@ def validate(scheme_dir: Path, force: bool = False):
     logging.info("Validation successful")
 
 
-def validate_recursively(root_dir: Path, force: bool = False):
+def validate_recursive(root_dir: Path, force: bool = False):
     """Validate all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
@@ -298,7 +298,7 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     shutil.copy(scheme_dir / "reference.fasta", out_dir)
 
 
-def build_recursively(root_dir: Path, force: bool = False):
+def build_recursive(root_dir: Path, force: bool = False):
     """Build all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
