@@ -11,7 +11,7 @@ import pandas as pd
 import yaml
 from Bio import SeqIO
 
-from primaschema import schema_dir
+from primaschema import data_dir
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -158,7 +158,7 @@ def parse_scheme(scheme_path) -> dict:
 
 
 def validate_yaml(scheme_path):
-    schema_path = schema_dir / "scheme_schema.json"
+    schema_path = data_dir / "scheme_schema.json"
     with open(schema_path, "r") as schema_fh:
         schema = json.load(schema_fh)
     scheme = parse_scheme(scheme_path)

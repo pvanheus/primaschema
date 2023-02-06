@@ -37,3 +37,6 @@ primaschema = "primaschema.cli:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "primaschema.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
