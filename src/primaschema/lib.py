@@ -299,10 +299,9 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
     schemes_paths = {}
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yaml":
+            scheme = parse_scheme(entry.path)
             scheme_dir = Path(entry.path).parent
-            scheme = scheme_dir.name
-            schemes_paths[scheme] = scheme_dir
-
+            schemes_paths[scheme.get("name")] = scheme_dir
     for scheme, path in schemes_paths.items():
         build(scheme_dir=path, force=force)
 

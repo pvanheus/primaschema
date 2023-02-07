@@ -88,6 +88,10 @@ def test_validate_fail_five_columns():
         lib.validate(data_dir / "broken/five-columns")
 
 
+def test_validate_recursive():
+    run_cmd = "primaschema validate-recursive primer-schemes"
+
+
 def test_hash_bed():
     lib.hash_bed(data_dir / "primer-schemes/artic/v4.1/primer.bed")
     lib.hash_bed(data_dir / "primer-schemes/artic/v4.1/scheme.bed")
