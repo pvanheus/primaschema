@@ -66,14 +66,15 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     lib.build(scheme_dir=scheme_dir, out_dir=out_dir, force=force)
 
 
-def build_recursive(root_dir: Path, force: bool = False):
+def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
     """
     Recursively build primer scheme bundles in the specified directory
 
     :arg root_dir: Path in which to search for schemes
     :arg force: Overwrite existing schemes and ignore hash check failures
+    :arg nested: Build definitions inside a nested dir structure of family/version
     """
-    lib.build_recursive(root_dir=root_dir, force=force)
+    lib.build_recursive(root_dir=root_dir, force=force, nested=nested)
 
 
 def seven_to_six(bed_path: Path, out_dir: Path = Path()):

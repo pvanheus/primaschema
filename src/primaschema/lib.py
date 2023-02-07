@@ -144,7 +144,7 @@ def hash_bed(bed_path: Path) -> str:
     bed_type = infer_bed_type(bed_path)
     if bed_type == "primer":
         checksum = hash_primer_bed(bed_path)
-    else:  # primary_bed_type == "scheme"
+    else:  # bed_type == "scheme"
         checksum = hash_scheme_bed(
             bed_path=bed_path, fasta_path=bed_path.parent / "reference.fasta"
         )
@@ -207,25 +207,14 @@ def infer_bed_type(bed_path: Path) -> str:
     return bed_type
 
 
-def infer_primary_bed_type(scheme_dir: Path) -> str:
-    if (scheme_dir / "primer.bed").exists():
-        primary_bed_type = "primer"
-    elif (scheme_dir / "scheme.bed").exists():
-        primary_bed_type = "scheme"
-    else:
-        raise RuntimeError("Failed to discover a bed file")
-    return primary_bed_type
-
-
 def validate(scheme_dir: Path, force: bool = False):
     logging.info(f"Validating {scheme_dir}")
-    primary_bed_type = infer_primary_bed_type(scheme_dir)
-    validate_bed(scheme_dir / f"{primary_bed_type}.bed", bed_type=primary_bed_type)
+    validate_bed(scheme_dir / "primer.bed", bed_type="primer")
     validate_yaml(scheme_dir / "info.yaml")
     scheme = parse_scheme(scheme_dir / "info.yaml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
-    primer_checksum = hash_bed(scheme_dir / f"{primary_bed_type}.bed")
+    primer_checksum = hash_bed(scheme_dir / "primer.bed")
     reference_checksum = hash_ref(scheme_dir / "reference.fasta")
     if (
         existing_primer_checksum
@@ -267,7 +256,9 @@ def validate_recursive(root_dir: Path, force: bool = False):
         validate(scheme_dir=path, force=force)
 
 
-def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
+def build(
+    scheme_dir: Path, out_dir: Path = Path(), force: bool = False, nested: bool = True
+):
     """
     Build a PHA4GE primer scheme bundle.
     Given a directory path containing info.yaml, reference.fasta, and either
@@ -275,38 +266,35 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     primer and reference checksums and a canonical primer.bed representation.
     """
     validate(scheme_dir=scheme_dir, force=force)
-    primary_bed_type = infer_primary_bed_type(scheme_dir)
     scheme = parse_scheme(scheme_dir / "info.yaml")
-    from pprint import pprint
-
-    out_dir = Path("built") / scheme["name"]
+    if nested:
+        family = Path(scheme["name"].partition("-")[0])
+        version = Path(scheme["name"].partition("-")[2])
+        out_dir = Path("built") / family / version
+    else:
+        out_dir = Path("built") / scheme["name"]
     try:
         out_dir.mkdir(parents=True, exist_ok=force)
     except FileExistsError:
         raise FileExistsError(f"Output directory {out_dir} already exists")
     if not scheme.get("primer_checksum"):
-        scheme["primer_checksum"] = hash_bed(scheme_dir / f"{primary_bed_type}.bed")
+        scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
     if not scheme.get("reference_checksum"):
         scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
     with open(out_dir / "info.yaml", "w") as scheme_fh:
-        logging.info(f"Writing {out_dir}/info.yaml")
+        logging.info(f"Writing info.yaml to {out_dir}/info.yaml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
-    if primary_bed_type == "scheme":
-        logging.info("Generating primer.bed from scheme.bed and reference.fasta")
-        convert_scheme_bed_to_primer_bed(
-            bed_path=scheme_dir / "scheme.bed",
-            fasta_path=scheme_dir / "reference.fasta",
-            out_dir=out_dir,
-            force=force,
-        )
-    else:
-        logging.info(f"Copying primer.bed to {out_dir}/primer.bed")
-        shutil.copy(scheme_dir / "primer.bed", out_dir)
+    logging.info(f"Copying primer.bed to {out_dir}/primer.bed")
+    shutil.copy(scheme_dir / "primer.bed", out_dir)
     logging.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
     shutil.copy(scheme_dir / "reference.fasta", out_dir)
+    logging.info(f"Writing scheme.bed to {out_dir}/scheme.bed")
+    convert_primer_bed_to_scheme_bed(bed_path=out_dir / "primer.bed")
+    shutil.copy("scheme.bed", out_dir.resolve())
+    os.remove("scheme.bed")
 
 
-def build_recursive(root_dir: Path, force: bool = False):
+def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
     """Build all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
