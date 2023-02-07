@@ -240,7 +240,7 @@ def validate(scheme_dir: Path, force: bool = False):
         logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
-    logging.info("Validation successful")
+    logging.info(f"Validation successful for {scheme.get('name')} ")
 
 
 def validate_recursive(root_dir: Path, force: bool = False):
