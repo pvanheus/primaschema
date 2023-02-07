@@ -8,6 +8,7 @@ from typing import Literal
 
 import jsonschema
 import pandas as pd
+from tempfile import TemporaryDirectory
 import yaml
 from Bio import SeqIO
 
@@ -118,8 +119,13 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
     return hash_primer_bed_df(bed7_df)
 
 
+def convert_primer_bed_to_scheme_bed(bed_path: Path, out_dir: Path = Path()):
+    df = parse_primer_bed(bed_path).drop("sequence", axis=1)
+    df.to_csv(out_dir / "scheme.bed", sep="\t", header=False, index=False)
+
+
 def convert_scheme_bed_to_primer_bed(
-    bed_path: Path, fasta_path: Path, out_dir: Path = Path(), force: bool = False
+    bed_path: Path, fasta_path: Path, out_dir: Path = Path()
 ):
     ref_record = SeqIO.read(fasta_path, "fasta")
     df = parse_scheme_bed(bed_path)
@@ -318,3 +324,15 @@ def diff(bed1_path: Path, bed2_path: Path):
     df1 = parse_primer_bed(bed1_path).assign(origin="bed1")
     df2 = parse_primer_bed(bed2_path).assign(origin="bed2")
     return pd.concat([df1, df2]).drop_duplicates(subset=PRIMER_BED_FIELDS, keep=False)
+
+
+def show_non_ref_alts(scheme_dir: Path):
+    """Show primer records with sequences not matching the reference sequence"""
+    bed_path = scheme_dir / "primer.bed"
+    fasta_path = scheme_dir / "reference.fasta"
+    with TemporaryDirectory() as temp_dir:
+        # temp_dir = Path(temp_dir)
+        convert_scheme_bed_to_primer_bed(
+            bed_path=bed_path, fasta_path=fasta_path, out_dir=temp_dir
+        )
+        print(temp_dir, os.listdir(temp_dir))

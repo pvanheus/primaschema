@@ -108,6 +108,23 @@ def test_build_recursive():
     run("rm -rf built", cwd="./")
 
 
+def test_primer_bed_to_scheme_bed():
+    lib.convert_primer_bed_to_scheme_bed(
+        bed_path=data_dir / "primer-schemes/artic/v4.1/primer.bed"
+    )
+    lib.parse_scheme_bed("scheme.bed")
+    run("rm -rf scheme.bed", cwd="./")
+
+
+def test_scheme_bed_to_primer_bed():
+    lib.convert_scheme_bed_to_primer_bed(
+        bed_path=data_dir / "primer-schemes/artic/v4.1/scheme.bed",
+        fasta_path=data_dir / "primer-schemes/artic/v4.1/reference.fasta",
+    )
+    lib.parse_primer_bed("primer.bed")
+    run("rm -rf primer.bed", cwd="./")
+
+
 def test_diff():
     run_cmd = run(
         "primaschema diff primer-schemes/midnight/v1/primer.bed primer-schemes/midnight/v2/primer.bed"

@@ -1,5 +1,6 @@
 import sys
 import logging
+import tempfile
 
 import defopt
 
@@ -58,8 +59,8 @@ def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     """
     Build a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
 
-    :arg scheme_dir: Path of scheme.bed file
-    :arg out_dir: Path of directory in which to save primer.bed
+    :arg scheme_dir: Path of input scheme directory
+    :arg out_dir: Path of directory in which to save scheme
     :arg force: Overwrite existing output files
     """
     lib.build(scheme_dir=scheme_dir, out_dir=out_dir, force=force)
@@ -75,19 +76,26 @@ def build_recursive(root_dir: Path, force: bool = False):
     lib.build_recursive(root_dir=root_dir, force=force)
 
 
-def six_to_seven(
-    bed_path: Path, fasta_path: Path, out_dir: Path = Path(), force: bool = False
-):
+def seven_to_six(bed_path: Path, out_dir: Path = Path()):
+    """
+    Convert a 7 column primer.bed file to a 6 column scheme.bed file by droppign a column
+
+    :arg bed_path: Path of primer.bed file
+    :arg out_dir: Path of directory in which to save primer.bed
+    """
+    lib.convert_primer_bed_to_scheme_bed(bed_path=bed_path, out_dir=out_dir)
+
+
+def six_to_seven(bed_path: Path, fasta_path: Path, out_dir: Path = Path()):
     """
     Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
 
     :arg bed_path: Path of scheme.bed file
     :arg fasta_path: Path of reference sequence
     :arg out_dir: Path of directory in which to save primer.bed
-    :arg force: Overwrite existing output files
     """
     lib.convert_scheme_bed_to_primer_bed(
-        bed_path=bed_path, fasta_path=fasta_path, out_dir=out_dir, force=force
+        bed_path=bed_path, fasta_path=fasta_path, out_dir=out_dir
     )
 
 
@@ -96,9 +104,21 @@ def diff(bed1_path: Path, bed2_path: Path):
     Show the symmetric difference of records in two bed files
 
     :arg bed_path1: Path of first bed file
+    :arg bed_path2: Path of second bed file
+    """
+    df = lib.diff(bed1_path, bed2_path)
+    if not df.empty:
+        print(df.to_string(index=False))
+
+
+def show_non_ref_alts(scheme_dir: Path):
+    """
+    Show primer records with sequences not matching the reference sequence
+
+    :arg scheme_dir: Path of input scheme directory
     :arg bed_path2: Path o second bed file
     """
-    print(lib.diff(bed1_path, bed2_path).to_string(index=False))
+    lib.show_non_ref_alts(scheme_dir=scheme_dir)
 
 
 def main():
@@ -112,6 +132,8 @@ def main():
             "build-recursive": build_recursive,
             "diff": diff,
             "6to7": six_to_seven,
+            "7to6": seven_to_six,
+            "show-non-ref-alts": show_non_ref_alts,
         },
         no_negated_flags=True,
         strict_kwonly=False,
