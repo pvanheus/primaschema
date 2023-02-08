@@ -166,7 +166,7 @@ def parse_scheme(scheme_path) -> dict:
 
 
 def validate_yaml(scheme_path):
-    schema_path = data_dir / "scheme_schema.json"
+    schema_path = data_dir / "scheme_schema.latest.json"
     with open(schema_path, "r") as schema_fh:
         schema = json.load(schema_fh)
     scheme = parse_scheme(scheme_path)
