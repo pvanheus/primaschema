@@ -6,7 +6,7 @@
     "type": "object",
     "properties": {
         "schema_version": {
-            "description": "The version fo the schema that this scheme description complies with. Currently should be 1-0-0",
+            "description": "The version fo the schema that this scheme description complies with. Currently should be 1-0-1",
             "type": "string"
         },
         "name": {
@@ -100,6 +100,10 @@
         "derived_from": {
             "description": "Canonical name of the primer scheme from which this scheme was derived",
             "type": "string"
+        },
+        "deprecated": {
+            "description": "Whether the primer scheme is deprecated and should not longer be used",
+            "type": "boolean"
         },
         "notes": {
             "description": "Notes on the primer scheme",

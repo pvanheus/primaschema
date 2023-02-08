@@ -51,10 +51,6 @@
                             "type": "string"
                         }
                     },
-                    "latest_version": {
-                        "description": "The identifier (typically a number) of the latest released version of the scheme",
-                        "type": "string"
-                    },
                     "versions": {
                         "type": "array",
                         "uniqueItems": true,
