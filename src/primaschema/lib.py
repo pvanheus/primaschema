@@ -321,6 +321,7 @@ def build_manifest(root_dir: Path, out_dir: Path):
         "metadata": "The PHA4GE list of amplicon primer schemes",
         "repository": "https://github.com/pha4ge/primer-schemes",
         "latest_doi": "https://doi.coming.soon/",
+        "license": "CC-BY-4.0",
     }
     names_schemes = {}
     families_names = defaultdict(list)
