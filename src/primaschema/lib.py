@@ -122,7 +122,7 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
 
 def convert_primer_bed_to_scheme_bed(bed_path: Path, out_dir: Path = Path()):
     df = parse_primer_bed(bed_path).drop("sequence", axis=1)
-    df.to_csv(out_dir / "scheme.bed", sep="\t", header=False, index=False)
+    df.to_csv(Path(out_dir) / "scheme.bed", sep="\t", header=False, index=False)
 
 
 def convert_scheme_bed_to_primer_bed(
@@ -138,7 +138,7 @@ def convert_scheme_bed_to_primer_bed(
         else:
             r["sequence"] = str(ref_record.seq[start_pos:end_pos].reverse_complement())
     df = pd.DataFrame(records)
-    df.to_csv(out_dir / "primer.bed", sep="\t", header=False, index=False)
+    df.to_csv(Path(out_dir) / "primer.bed", sep="\t", header=False, index=False)
 
 
 def hash_bed(bed_path: Path) -> str:
@@ -368,7 +368,10 @@ def show_non_ref_alts(scheme_dir: Path):
     fasta_path = scheme_dir / "reference.fasta"
     with TemporaryDirectory() as temp_dir:
         # temp_dir = Path(temp_dir)
+        # convert_primer_bed_to_scheme_bed(bed_path=bed_path, out_dir=temp_dir)
         convert_scheme_bed_to_primer_bed(
-            bed_path=bed_path, fasta_path=fasta_path, out_dir=temp_dir
+            bed_path=scheme_dir / "scheme.bed",
+            fasta_path=scheme_dir / "reference.fasta",
+            out_dir=temp_dir,
         )
-        print(temp_dir, os.listdir(temp_dir))
+        return diff(bed1_path=bed_path, bed2_path=Path(temp_dir) / "primer.bed")

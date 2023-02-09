@@ -1,6 +1,5 @@
 import sys
 import logging
-import yaml
 
 import defopt
 
@@ -126,9 +125,8 @@ def show_non_ref_alts(scheme_dir: Path):
     Show primer records with sequences not matching the reference sequence
 
     :arg scheme_dir: Path of input scheme directory
-    :arg bed_path2: Path o second bed file
     """
-    lib.show_non_ref_alts(scheme_dir=scheme_dir)
+    print(lib.show_non_ref_alts(scheme_dir=scheme_dir))
 
 
 def main():
