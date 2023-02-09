@@ -1,6 +1,6 @@
 import sys
 import logging
-import tempfile
+import yaml
 
 import defopt
 
@@ -36,7 +36,7 @@ def hash_ref(ref_path: Path):
 
 def validate(scheme_dir: Path):
     """
-    Validate a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
+    Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: Path of scheme.bed file
     :arg out_dir: Path of directory in which to save primer.bed
@@ -57,7 +57,7 @@ def validate_recursive(root_dir: Path, force: bool = False):
 
 def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
     """
-    Build a primer scheme bundle containing info.yaml, primer.bed and reference.fasta
+    Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: Path of input scheme directory
     :arg out_dir: Path of directory in which to save scheme
@@ -75,6 +75,15 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
     :arg nested: Build definitions inside a nested dir structure of family/version
     """
     lib.build_recursive(root_dir=root_dir, force=force, nested=nested)
+
+
+def build_manifest(root_dir: Path, out_dir: Path = Path()):
+    """
+    Build a complete manifest of schemes contained in the specified directory
+
+    :arg root_dir: Path in which to search for schemes
+    """
+    lib.build_manifest(root_dir=root_dir, out_dir=out_dir)
 
 
 def seven_to_six(bed_path: Path, out_dir: Path = Path()):
@@ -131,6 +140,7 @@ def main():
             "validate-recursive": validate_recursive,
             "build": build,
             "build-recursive": build_recursive,
+            "build-manifest": build_manifest,
             "diff": diff,
             "6to7": six_to_seven,
             "7to6": seven_to_six,

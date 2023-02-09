@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import shutil
+from collections import defaultdict
 from pathlib import Path
 from typing import Literal
 
@@ -165,12 +166,19 @@ def parse_scheme(scheme_path) -> dict:
         return yaml.safe_load(scheme_fh)
 
 
-def validate_yaml(scheme_path):
+def validate_yaml(scheme_path: Path):
     schema_path = data_dir / "scheme_schema.latest.json"
     with open(schema_path, "r") as schema_fh:
         schema = json.load(schema_fh)
     scheme = parse_scheme(scheme_path)
     return jsonschema.validate(scheme, schema=schema)
+
+
+def validate_manifest(manifest_path: Path):
+    schema_path = data_dir / "manifest_schema.latest.json"
+    with open(manifest_path, "r") as schema_fh:
+        manifest = json.load(schema_fh)
+    return jsonschema.validate(manifest, schema=schema)
 
 
 def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
@@ -210,8 +218,8 @@ def infer_bed_type(bed_path: Path) -> str:
 def validate(scheme_dir: Path, force: bool = False):
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
-    validate_yaml(scheme_dir / "info.yaml")
-    scheme = parse_scheme(scheme_dir / "info.yaml")
+    validate_yaml(scheme_dir / "info.yml")
+    scheme = parse_scheme(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
     primer_checksum = hash_bed(scheme_dir / "primer.bed")
@@ -247,7 +255,7 @@ def validate_recursive(root_dir: Path, force: bool = False):
     """Validate all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
-        if entry.is_file() and entry.name == "info.yaml":
+        if entry.is_file() and entry.name == "info.yml":
             scheme_dir = Path(entry.path).parent
             scheme = scheme_dir.name
             schemes_paths[scheme] = scheme_dir
@@ -261,12 +269,12 @@ def build(
 ):
     """
     Build a PHA4GE primer scheme bundle.
-    Given a directory path containing info.yaml, reference.fasta, and either
-    primer.bed or reference.bed, generate a directory containing info.yaml including
+    Given a directory path containing info.yml, reference.fasta, and either
+    primer.bed or reference.bed, generate a directory containing info.yml including
     primer and reference checksums and a canonical primer.bed representation.
     """
     validate(scheme_dir=scheme_dir, force=force)
-    scheme = parse_scheme(scheme_dir / "info.yaml")
+    scheme = parse_scheme(scheme_dir / "info.yml")
     if nested:
         family = Path(scheme["name"].partition("-")[0])
         version = Path(scheme["name"].partition("-")[2])
@@ -281,8 +289,8 @@ def build(
         scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
     if not scheme.get("reference_checksum"):
         scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
-    with open(out_dir / "info.yaml", "w") as scheme_fh:
-        logging.info(f"Writing info.yaml to {out_dir}/info.yaml")
+    with open(out_dir / "info.yml", "w") as scheme_fh:
+        logging.info(f"Writing info.yml to {out_dir}/info.yml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
     logging.info(f"Copying primer.bed to {out_dir}/primer.bed")
     shutil.copy(scheme_dir / "primer.bed", out_dir)
@@ -298,12 +306,56 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
     """Build all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
-        if entry.is_file() and entry.name == "info.yaml":
+        if entry.is_file() and entry.name == "info.yml":
             scheme = parse_scheme(entry.path)
             scheme_dir = Path(entry.path).parent
             schemes_paths[scheme.get("name")] = scheme_dir
     for scheme, path in schemes_paths.items():
         build(scheme_dir=path, force=force)
+
+
+def build_manifest(root_dir: Path, out_dir: Path):
+    """Build manifest of schemes inside the specified directory"""
+    manifest = {
+        "schema_version": "2-0-0",
+        "metadata": "The PHA4GE list of amplicon primer schemes",
+        "repository": "https://github.com/pha4ge/primer-schemes",
+        "latest_doi": "https://doi.coming.soon/",
+    }
+    names_schemes = {}
+    families_names = defaultdict(list)
+    for entry in scan(root_dir):
+        if entry.is_file() and entry.name == "info.yml":
+            scheme = parse_scheme(entry.path)
+            name = scheme["name"]
+            names_schemes[name] = scheme
+            family, _, version = scheme["name"].partition("-")
+            families_names[family].append(name)
+
+    families_data = []
+    for family, names in sorted(families_names.items()):
+        family_data = {}
+        family_data["family"] = family
+        family_example_name = families_names[family][0]
+        family_data["organism"] = names_schemes[family_example_name]["organism"]
+        versions_data = []
+        for name in sorted(names):
+            version_data = {
+                "name": name,
+                "version": name.partition("-")[2],
+                "repository": names_schemes[name]["repository_url"],
+            }
+            versions_data.append(version_data)
+        family_data["versions"] = versions_data
+        families_data.append(family_data)
+    manifest["schemes"] = families_data
+
+    manifest_file_name = "index.yml"
+    with open(out_dir / manifest_file_name, "w") as fh:
+        logging.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
+        yaml.dump(manifest, fh, sort_keys=False)
+
+    validate_manifest(out_dir / manifest_file_name)
 
 
 def diff(bed1_path: Path, bed2_path: Path):

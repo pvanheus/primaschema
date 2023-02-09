@@ -61,11 +61,11 @@ def test_artic_v41_scheme_hash_matches_primer_hash():
 
 
 def test_eden_v1_schema():
-    lib.validate_yaml(f"{data_dir}/primer-schemes/eden/v1/info.yaml")
+    lib.validate_yaml(f"{data_dir}/primer-schemes/eden/v1/info.yml")
 
 
 def test_artic_v41_schema():
-    lib.validate_yaml(f"{data_dir}/primer-schemes/artic/v4.1/info.yaml")
+    lib.validate_yaml(f"{data_dir}/primer-schemes/artic/v4.1/info.yml")
 
 
 # Needs updating since reverting hash function to consume coordinates again. Needs BEDs creating for this case
