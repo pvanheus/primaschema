@@ -13,18 +13,23 @@ pip install https://github.com/pha4ge/primaschema  # Main branch
 
 ```
 % primaschema --help
-usage: primaschema [-h] [--version] {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,diff,6to7} ...
+usage: primaschema [-h] [--version]
+                   {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,build-manifest,diff,6to7,7to6,show-non-ref-alts}
+                   ...
 
 positional arguments:
-  {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,diff,6to7}
+  {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,build-manifest,diff,6to7,7to6,show-non-ref-alts}
     hash-ref            Generate reference sequence checksum
     hash-bed            Generate a bed file checksum
     validate            Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
     validate-recursive  Recursively validate primer scheme bundles in the specified directory
     build               Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
     build-recursive     Recursively build primer scheme bundles in the specified directory
+    build-manifest      Build a complete manifest of schemes contained in the specified directory
     diff                Show the symmetric difference of records in two bed files
     6to7                Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
+    7to6                Convert a 7 column primer.bed file to a 6 column scheme.bed file by droppign a column
+    show-non-ref-alts   Show primer records with sequences not matching the reference sequence
 
 options:
   -h, --help            show this help message and exit
