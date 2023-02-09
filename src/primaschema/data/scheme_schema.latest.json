@@ -6,7 +6,7 @@
     "type": "object",
     "properties": {
         "schema_version": {
-            "description": "The version of the schema used to create this scheme definition. E.g. 1-0-0",
+            "description": "The version of the schema used to create this scheme definition. Currently should be 1-0-1",
             "type": "string"
         },
         "name": {
@@ -109,7 +109,7 @@
             }
         },
         "deprecated": {
-            "description": "Indicates that this primer scheme has been superseded by a newer scheme",
+            "description": "Whether the primer scheme is deprecated and should not longer be used",
             "type": "boolean"
         }
     },
