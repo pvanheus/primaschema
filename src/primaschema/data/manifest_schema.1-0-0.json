@@ -29,8 +29,8 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "family": {
-                        "description": "The name of the scheme excluding the version",
+                    "name": {
+                        "description": "The common name of the scheme",
                         "type": "string"
                     },
                     "aliases": {
@@ -74,8 +74,9 @@
                     }
                 },
                 "required": [
-                    "family",
+                    "name",
                     "organism",
+                    "latest_version",
                     "versions"
                 ]
             }

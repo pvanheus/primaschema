@@ -161,24 +161,16 @@ def count_tsv_columns(bed_path: Path) -> int:
     return len(pd.read_csv(bed_path, sep="\t").columns)
 
 
-def parse_scheme(scheme_path) -> dict:
-    with open(scheme_path, "r") as scheme_fh:
-        return yaml.safe_load(scheme_fh)
+def parse_yaml(path) -> dict:
+    with open(path, "r") as fh:
+        return yaml.safe_load(fh)
 
 
-def validate_yaml(scheme_path: Path):
-    schema_path = data_dir / "scheme_schema.latest.json"
+def validate_yaml_with_json_schema(yaml_path: Path, schema_path: Path):
+    yaml_data = parse_yaml(yaml_path)
     with open(schema_path, "r") as schema_fh:
         schema = json.load(schema_fh)
-    scheme = parse_scheme(scheme_path)
-    return jsonschema.validate(scheme, schema=schema)
-
-
-def validate_manifest(manifest_path: Path):
-    schema_path = data_dir / "manifest_schema.latest.json"
-    with open(manifest_path, "r") as schema_fh:
-        manifest = json.load(schema_fh)
-    return jsonschema.validate(manifest, schema=schema)
+    return jsonschema.validate(yaml_data, schema=schema)
 
 
 def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
@@ -218,8 +210,10 @@ def infer_bed_type(bed_path: Path) -> str:
 def validate(scheme_dir: Path, force: bool = False):
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
-    validate_yaml(scheme_dir / "info.yml")
-    scheme = parse_scheme(scheme_dir / "info.yml")
+    validate_yaml_with_json_schema(
+        scheme_dir / "info.yml", data_dir / "scheme_schema.latest.json"
+    )
+    scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
     primer_checksum = hash_bed(scheme_dir / "primer.bed")
@@ -274,7 +268,7 @@ def build(
     primer and reference checksums and a canonical primer.bed representation.
     """
     validate(scheme_dir=scheme_dir, force=force)
-    scheme = parse_scheme(scheme_dir / "info.yml")
+    scheme = parse_yaml(scheme_dir / "info.yml")
     if nested:
         family = Path(scheme["name"].partition("-")[0])
         version = Path(scheme["name"].partition("-")[2])
@@ -307,7 +301,7 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
     schemes_paths = {}
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
-            scheme = parse_scheme(entry.path)
+            scheme = parse_yaml(entry.path)
             scheme_dir = Path(entry.path).parent
             schemes_paths[scheme.get("name")] = scheme_dir
     for scheme, path in schemes_paths.items():
@@ -327,7 +321,7 @@ def build_manifest(root_dir: Path, out_dir: Path):
     families_names = defaultdict(list)
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
-            scheme = parse_scheme(entry.path)
+            scheme = parse_yaml(entry.path)
             name = scheme["name"]
             names_schemes[name] = scheme
             family, _, version = scheme["name"].partition("-")
@@ -347,6 +341,7 @@ def build_manifest(root_dir: Path, out_dir: Path):
                 "repository": names_schemes[name]["repository_url"],
             }
             versions_data.append(version_data)
+            logging.info(f"Reading {name}")
         family_data["versions"] = versions_data
         families_data.append(family_data)
     manifest["schemes"] = families_data
@@ -354,9 +349,10 @@ def build_manifest(root_dir: Path, out_dir: Path):
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:
         logging.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
-        yaml.dump(manifest, fh, sort_keys=False)
-
-    validate_manifest(out_dir / manifest_file_name)
+        yaml.dump(data=manifest, stream=fh)
+    validate_yaml_with_json_schema(
+        out_dir / manifest_file_name, data_dir / "manifest_schema.latest.json"
+    )
 
 
 def diff(bed1_path: Path, bed2_path: Path):
