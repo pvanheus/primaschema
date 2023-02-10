@@ -1,19 +1,19 @@
 ![Tests](https://github.com/pha4ge/primaschema/actions/workflows/test.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/primaschema.svg)](https://pypi.org/project/primaschema)
 # Primaschema
 
-The toolkit for validating and building tiling amplicon PCR primer scheme definitions for inclusion in the [PHA4GE primer-schemes repository](https://github.com/pha4ge/primer-schemes), starting from either 6 or 7 column Primal Scheme-like BED files and metadata contained in a YAML file.
+The toolkit for validating and building tiling amplicon PCR primer scheme definitions for inclusion in the [PHA4GE primer-schemes repository, using 6 or 7 column Primal Scheme-like BED files and scheme metadata contained in a YAML file.
 
 
 
 ## Install (Python 3.10+)
 
 ```
-# Stable release
+# Latest stable release
 pip install primaschema
 
-# Main branch
+# From main branch
 git clone https://github.com/pha4ge/primaschema
-pip install primer-schemes
+pip install ./primaschema
 
 # Development
 git clone https://github.com/pha4ge/primaschema.git
@@ -22,7 +22,7 @@ pip install --editable ./
 pytest
 ```
 
-Some primaschema commands use components from the [primer-schemes](https://github.com/pha4ge/primer-schemes) repository. To show Primaschema where to find these, create the evironment variable `PRIMER_SCHEMES_PATH` pointing to the location of the primer-schemes directory on your machine:
+Some Primaschema commands use components from the [primer-schemes](https://github.com/pha4ge/primer-schemes) repository. To show Primaschema where to find these, create the environment variable `PRIMER_SCHEMES_PATH` pointing to the location of the primer-schemes directory on your machine:
 
 ```
 git clone https://github.com/pha4ge/primer-schemes.git
