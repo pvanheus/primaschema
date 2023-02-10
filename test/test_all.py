@@ -118,6 +118,13 @@ def test_build_recursive():
     run("rm -rf built", cwd="./")
 
 
+def test_build_manifest():
+    lib.build_manifest(
+        root_dir=data_dir / "primer-schemes",
+        schema_dir=f"{data_dir}/../../src/primaschema/data",
+    )
+
+
 def test_primer_bed_to_scheme_bed():
     lib.convert_primer_bed_to_scheme_bed(
         bed_path=data_dir / "primer-schemes/artic/v4.1/primer.bed"

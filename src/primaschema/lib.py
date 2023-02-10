@@ -308,15 +308,18 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
         build(scheme_dir=path, force=force)
 
 
-def build_manifest(root_dir: Path, out_dir: Path):
+def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
+    organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
     manifest = {
         "schema_version": "2-0-0",
         "metadata": "The PHA4GE list of amplicon primer schemes",
         "repository": "https://github.com/pha4ge/primer-schemes",
         "latest_doi": "https://doi.coming.soon/",
         "license": "CC-BY-4.0",
+        "organisms": organisms,
     }
+
     names_schemes = {}
     families_names = defaultdict(list)
     for entry in scan(root_dir):
@@ -335,12 +338,18 @@ def build_manifest(root_dir: Path, out_dir: Path):
         family_data["organism"] = names_schemes[family_example_name]["organism"]
         versions_data = []
         for name in sorted(names):
-            version_data = {
-                "name": name,
-                "version": name.partition("-")[2],
-                "repository": names_schemes[name]["repository_url"],
-            }
-            versions_data.append(version_data)
+            if names_schemes[name].get("display_name"):
+                display_name = names_schemes[name]["display_name"]
+            else:
+                display_name = name
+            versions_data.append(
+                {
+                    "name": name,
+                    "display_name": display_name,
+                    "version": name.partition("-")[2],
+                    "repository": names_schemes[name]["repository_url"],
+                }
+            )
             logging.info(f"Reading {name}")
         family_data["versions"] = versions_data
         families_data.append(family_data)
@@ -349,7 +358,7 @@ def build_manifest(root_dir: Path, out_dir: Path):
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:
         logging.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
-        yaml.dump(data=manifest, stream=fh)
+        yaml.dump(data=manifest, stream=fh, sort_keys=False)
     validate_yaml_with_json_schema(
         out_dir / manifest_file_name, data_dir / "manifest_schema.latest.json"
     )
@@ -367,8 +376,6 @@ def show_non_ref_alts(scheme_dir: Path):
     bed_path = scheme_dir / "primer.bed"
     fasta_path = scheme_dir / "reference.fasta"
     with TemporaryDirectory() as temp_dir:
-        # temp_dir = Path(temp_dir)
-        # convert_primer_bed_to_scheme_bed(bed_path=bed_path, out_dir=temp_dir)
         convert_scheme_bed_to_primer_bed(
             bed_path=scheme_dir / "scheme.bed",
             fasta_path=scheme_dir / "reference.fasta",

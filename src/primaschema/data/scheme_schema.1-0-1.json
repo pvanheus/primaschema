@@ -6,20 +6,23 @@
     "type": "object",
     "properties": {
         "schema_version": {
-            "description": "The version of the schema used to create this scheme definition. Currently should be 2-0-0",
+            "description": "The version of the schema used to create this scheme definition. Currently should be 1-0-1",
             "type": "string"
         },
         "name": {
-            "description": "The canonical name of the primer scheme (lowercase)",
-            "type": "string"
-        },
-        "display_name": {
-            "description": "The human-friendly display name of the primer scheme",
+            "description": "The canonical name of the primer scheme",
             "type": "string"
         },
         "organism": {
             "description": "The organism to which this primer scheme refers in lowercase, e.g. sars-cov-2",
             "type": "string"
+        },
+        "organism_aliases": {
+            "description": "Aliases for organism name",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "aliases": {
             "description": "Aliases for primer scheme name",
