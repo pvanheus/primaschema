@@ -7,8 +7,9 @@ The toolkit for validating and building tiling amplicon PCR primer scheme defini
 
 ## Install (Python 3.10+)
 
-```bash
-pip install https://github.com/pha4ge/primaschema
+```
+git clone https://github.com/pha4ge/primaschema
+pip install primer-schemes
 ```
 
 Some primaschema commands use components from the [primer-schemes](https://github.com/pha4ge/primer-schemes) repository. To show Primaschema where to find these, create the evironment variable `PRIMER_SCHEMES_PATH` pointing to the location of the primer-schemes directory on your machine:

@@ -30,12 +30,14 @@ def scan(path):
 def get_primer_schemes_path():
     """Locate primer-schemes repo root using environment variable"""
     env_var = "PRIMER_SCHEMES_PATH"
-    path = Path(os.environ[env_var]).resolve()
-    if not (path / "schema").exists():
+    if (
+        not env_var in os.environ
+        or not (Path(os.environ[env_var]).resolve() / "schema").exists()
+    ):
         raise RuntimeError(
-            f'Invalid or unset environment variable {env_var}.\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
+            f'Invalid or unset environment variable {env_var} ({os.environ.get(env_var)}).\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
         )
-    return path
+    return Path(os.environ[env_var]).resolve()
 
 
 def hash_string(string: str) -> str:
