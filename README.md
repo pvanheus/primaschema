@@ -1,4 +1,5 @@
-![Tests](https://github.com/pha4ge/primaschema/actions/workflows/test.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/primaschema.svg)](https://pypi.org/project/primaschema)
+[![Tests](https://github.com/pha4ge/primaschema/actions/workflows/test.yml/badge.svg)](https://github.com/pha4ge/primaschema/actions/workflows/test.yml) [![PyPI version](https://badge.fury.io/py/primaschema.svg)](https://pypi.org/project/primaschema)
+
 # Primaschema
 
 The toolkit for validating and building tiling amplicon PCR primer scheme definitions for inclusion in the [PHA4GE primer-schemes repository, using 6 or 7 column Primal Scheme-like BED files and scheme metadata contained in a YAML file.
