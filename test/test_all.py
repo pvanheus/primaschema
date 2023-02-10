@@ -62,15 +62,15 @@ def test_artic_v41_scheme_hash_matches_primer_hash():
 
 def test_eden_v1_schema():
     lib.validate_yaml_with_json_schema(
-        f"{data_dir}/primer-schemes/eden/v1/info.yml",
-        f"{data_dir}/../../src/primaschema/data/scheme_schema.latest.json",
+        data_dir / "primer-schemes/eden/v1/info.yml",
+        data_dir / "schema/scheme_schema.latest.json",
     )
 
 
 def test_artic_v41_schema():
     lib.validate_yaml_with_json_schema(
-        f"{data_dir}/primer-schemes/artic/v4.1/info.yml",
-        f"{data_dir}/../../src/primaschema/data/scheme_schema.latest.json",
+        data_dir / "primer-schemes/artic/v4.1/info.yml",
+        data_dir / "schema/scheme_schema.latest.json",
     )
 
 
@@ -121,7 +121,7 @@ def test_build_recursive():
 def test_build_manifest():
     lib.build_manifest(
         root_dir=data_dir / "primer-schemes",
-        schema_dir=f"{data_dir}/../../src/primaschema/data",
+        schema_dir=data_dir / "schema",
     )
 
 

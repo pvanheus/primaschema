@@ -13,8 +13,6 @@ from tempfile import TemporaryDirectory
 import yaml
 from Bio import SeqIO
 
-from primaschema import data_dir
-
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
@@ -27,6 +25,17 @@ def scan(path):
             yield from scan(entry.path)
         else:
             yield entry
+
+
+def get_primer_schemes_path():
+    """Locate primer-schemes repo root using environment variable"""
+    env_var = "PRIMER_SCHEMES_PATH"
+    path = Path(os.environ[env_var]).resolve()
+    if not (path / "schema").exists():
+        raise RuntimeError(
+            f'Invalid or unset environment variable {env_var}.\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
+        )
+    return path
 
 
 def hash_string(string: str) -> str:
@@ -208,10 +217,11 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, force: bool = False):
+    schema_path = get_primer_schemes_path() / "schema/scheme_schema.latest.json"
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
     validate_yaml_with_json_schema(
-        scheme_dir / "info.yml", data_dir / "scheme_schema.latest.json"
+        yaml_path=scheme_dir / "info.yml", schema_path=schema_path
     )
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
@@ -310,6 +320,7 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
 
 def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
+    schema_path = get_primer_schemes_path() / "schema/manifest_schema.latest.json"
     organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
     manifest = {
         "schema_version": "2-0-0",
@@ -360,7 +371,7 @@ def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
         logging.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
         yaml.dump(data=manifest, stream=fh, sort_keys=False)
     validate_yaml_with_json_schema(
-        out_dir / manifest_file_name, data_dir / "manifest_schema.latest.json"
+        yaml_path=out_dir / manifest_file_name, schema_path=schema_path
     )
 
 

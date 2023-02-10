@@ -131,3 +131,6 @@ dmypy.json
 .DS_Store
 
 .vscode
+
+built/
+test/data/built
