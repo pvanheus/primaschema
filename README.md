@@ -2,7 +2,7 @@
 
 # Primaschema
 
-The toolkit for validating and building tiling amplicon PCR primer scheme definitions for inclusion in the [PHA4GE primer-schemes repository, using 6 or 7 column Primal Scheme-like BED files and scheme metadata contained in a YAML file.
+The toolkit for validating and building tiling amplicon PCR primer scheme definitions for inclusion in the [PHA4GE primer-schemes repository](https://github.com/pha4ge/primer-schemes), using 6 or 7 column Primal Scheme-like BED files and scheme metadata contained in a YAML file.
 
 
 
