@@ -28,6 +28,7 @@ dependencies = [
     "pandas >= 1.5.3",
     "pre-commit",
     "pytest",
+    "jsonschema",
     "pyyaml",
     "linkml>=1.5.2",
 ]
