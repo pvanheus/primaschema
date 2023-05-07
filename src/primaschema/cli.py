@@ -5,10 +5,31 @@ import defopt
 
 from pathlib import Path
 
+import primaschema
 import primaschema.lib as lib
 
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+linkml_logger = logging.getLogger("linkml")
+linkml_logger.setLevel(logging.WARNING)
+
+# # Create a custom logger for the specific module
+# logger = logging.getLogger(primaschema.__name__)
+# logger.setLevel(logging.INFO)
+
+# # Create a console handler for the logger
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.INFO)
+
+# # Create a formatter for the console handler
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# console_handler.setFormatter(formatter)
+
+# # Add the console handler to the logger
+# logger.addHandler(console_handler)
+
+# # Disable propagation of log messages to the root logger
+# logger.propagate = False
 
 
 def hash_bed(bed_path: Path):

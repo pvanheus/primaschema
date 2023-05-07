@@ -1,21 +1,47 @@
-import hashlib
 import json
+import hashlib
 import logging
 import os
 import shutil
 from collections import defaultdict
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Literal
 
 import jsonschema
 import pandas as pd
-from tempfile import TemporaryDirectory
 import yaml
 from Bio import SeqIO
+from linkml.generators.pythongen import PythonGenerator
+from linkml.validators import JsonSchemaDataValidator
+from linkml_runtime.utils.schemaview import SchemaView
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
+
+
+# logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+# linkml_logger = logging.getLogger("linkml")
+# linkml_logger.setLevel(logging.WARNING)
+
+# Create a custom logger for the specific module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a console handler for the logger
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Create a formatter for the console handler
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+
+# Add the console handler to the logger
+logger.addHandler(console_handler)
+
+# Disable propagation of log messages to the root logger
+logger.propagate = False
 
 
 def scan(path):
@@ -184,6 +210,19 @@ def validate_yaml_with_json_schema(yaml_path: Path, schema_path: Path):
     return jsonschema.validate(yaml_data, schema=schema)
 
 
+def validate_with_linkml_schema(yaml_path: Path, schema_path: Path):
+    schema_view = SchemaView(schema_path)
+    schema_gen = PythonGenerator(schema_view.schema)
+    print("cat!")
+    schema_compiled = schema_gen.compile_module()
+    print("dog!")
+    data = parse_yaml(yaml_path)
+    data_instance = schema_compiled.PrimerScheme(**data)
+    # print(yaml_dumper.dumps(data_instance))
+    validator = JsonSchemaDataValidator(schema_view.schema)
+    validator.validate_object(data_instance)
+
+
 def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
     bed_columns = count_tsv_columns(bed_path)
     if bed_type == "primer" and bed_columns != 7:
@@ -219,10 +258,14 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, force: bool = False):
-    schema_path = get_primer_schemes_path() / "schema/scheme_schema.latest.json"
+    # schema_path = get_primer_schemes_path() / "schema/scheme_schema.latest.json"
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
-    validate_yaml_with_json_schema(
+    # validate_yaml_with_json_schema(
+    #     yaml_path=scheme_dir / "info.yml", schema_path=schema_path
+    # )
+    schema_path = get_primer_schemes_path() / "schema/primer_scheme.latest.yaml"
+    validate_with_linkml_schema(
         yaml_path=scheme_dir / "info.yml", schema_path=schema_path
     )
     scheme = parse_yaml(scheme_dir / "info.yml")
@@ -322,7 +365,7 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
 
 def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
-    schema_path = get_primer_schemes_path() / "schema/manifest_schema.latest.json"
+    schema_path = get_primer_schemes_path() / "schema/manifest.latest.json"
     organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
     manifest = {
         "schema_version": "2-0-0",
