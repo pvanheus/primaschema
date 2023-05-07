@@ -65,14 +65,14 @@ def test_artic_v41_scheme_hash_matches_primer_hash():
 def test_eden_v1_schema():
     lib.validate_with_linkml_schema(
         data_dir / "primer-schemes/eden/v1/info.yml",
-        schema_dir / "primer_scheme.latest.yaml",
+        schema_dir / "primer_scheme.yml",
     )
 
 
 def test_artic_v41_schema():
     lib.validate_with_linkml_schema(
         data_dir / "primer-schemes/artic/v4.1/info.yml",
-        schema_dir / "primer_scheme.latest.yaml",
+        schema_dir / "primer_scheme.yml",
     )
 
 

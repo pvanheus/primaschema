@@ -1,17 +1,15 @@
-import sys
 import logging
+import sys
+from pathlib import Path
 
 import defopt
 
-from pathlib import Path
-
-import primaschema
 import primaschema.lib as lib
 
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-linkml_logger = logging.getLogger("linkml")
-linkml_logger.setLevel(logging.WARNING)
+# linkml_logger = logging.getLogger("linkml")
+# linkml_logger.setLevel(logging.WARNING)
 
 # # Create a custom logger for the specific module
 # logger = logging.getLogger(primaschema.__name__)

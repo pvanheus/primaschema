@@ -1,5 +1,5 @@
-import json
 import hashlib
+import json
 import logging
 import os
 import shutil
@@ -25,23 +25,23 @@ PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
 # linkml_logger = logging.getLogger("linkml")
 # linkml_logger.setLevel(logging.WARNING)
 
-# Create a custom logger for the specific module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+# # Create a custom logger for the specific module
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.INFO)
 
-# Create a console handler for the logger
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+# # Create a console handler for the logger
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.INFO)
 
-# Create a formatter for the console handler
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(formatter)
+# # Create a formatter for the console handler
+# formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# console_handler.setFormatter(formatter)
 
-# Add the console handler to the logger
-logger.addHandler(console_handler)
+# # Add the console handler to the logger
+# logger.addHandler(console_handler)
 
-# Disable propagation of log messages to the root logger
-logger.propagate = False
+# # Disable propagation of log messages to the root logger
+# logger.propagate = False
 
 
 def scan(path):
@@ -264,7 +264,7 @@ def validate(scheme_dir: Path, force: bool = False):
     # validate_yaml_with_json_schema(
     #     yaml_path=scheme_dir / "info.yml", schema_path=schema_path
     # )
-    schema_path = get_primer_schemes_path() / "schema/primer_scheme.latest.yaml"
+    schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
     validate_with_linkml_schema(
         yaml_path=scheme_dir / "info.yml", schema_path=schema_path
     )
@@ -365,7 +365,7 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
 
 def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
-    schema_path = get_primer_schemes_path() / "schema/manifest.latest.json"
+    schema_path = get_primer_schemes_path() / "schema/manifest.json"
     organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
     manifest = {
         "schema_version": "2-0-0",
