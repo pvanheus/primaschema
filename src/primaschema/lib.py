@@ -213,9 +213,7 @@ def validate_yaml_with_json_schema(yaml_path: Path, schema_path: Path):
 def validate_with_linkml_schema(yaml_path: Path, schema_path: Path):
     schema_view = SchemaView(schema_path)
     schema_gen = PythonGenerator(schema_view.schema)
-    print("cat!")
     schema_compiled = schema_gen.compile_module()
-    print("dog!")
     data = parse_yaml(yaml_path)
     data_instance = schema_compiled.PrimerScheme(**data)
     # print(yaml_dumper.dumps(data_instance))
