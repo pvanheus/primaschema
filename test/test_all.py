@@ -23,32 +23,23 @@ def test_cli_version():
 def test_hash_ref():
     assert (
         lib.hash_ref("test/data/primer-schemes/eden/v1/reference.fasta")
-        == "primaschema:7d5621cd3b3e498d0c27fcca9d3d3c5168c7f3d3f9776f3005c7011bd90068ca"
+        == "primaschema:7d5621cd3b3e498d"
     )
 
 
 def test_cli_hash_ref():
     run_cmd = run("primaschema hash-ref primer-schemes/eden/v1/reference.fasta")
-    assert (
-        "primaschema:7d5621cd3b3e498d0c27fcca9d3d3c5168c7f3d3f9776f3005c7011bd90068ca"
-        in run_cmd.stdout
-    )
+    assert "primaschema:7d5621cd3b3e498d" in run_cmd.stdout
 
 
 def test_cli_hash_primer_bed():
     run_cmd = run("primaschema hash-bed primer-schemes/artic/v4.1/primer.bed")
-    assert (
-        "primaschema:9005b441227985c882434ffce1e72682ea17591005f5e15c72a6fce774d630cb"
-        in run_cmd.stdout
-    )
+    assert "primaschema:9005b441227985c8" in run_cmd.stdout
 
 
 def test_cli_scheme_bed():
     run_cmd = run("primaschema hash-bed primer-schemes/artic/v4.1/scheme.bed")
-    assert (
-        "primaschema:9005b441227985c882434ffce1e72682ea17591005f5e15c72a6fce774d630cb"
-        in run_cmd.stdout
-    )
+    assert "primaschema:9005b441227985c8" in run_cmd.stdout
 
 
 def test_artic_v41_scheme_hash_matches_primer_hash():

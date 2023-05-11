@@ -302,7 +302,7 @@ def build(
     if nested:
         family = Path(scheme["name"].partition("-")[0])
         version = Path(scheme["name"].partition("-")[2])
-        out_dir = Path("built") / family / version
+        out_dir = Path("built") / scheme["organism"] / family / version
     else:
         out_dir = Path("built") / scheme["name"]
     try:
@@ -341,10 +341,10 @@ def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     schema_path = get_primer_schemes_path() / "schema/manifest.json"
     organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
     manifest = {
-        "schema_version": "2-0-0",
-        "metadata": "The PHA4GE list of amplicon primer schemes",
+        "schema_version": "0.9.0",
+        "metadata": "The PHA4GE list of tiling amplicon primer schemes",
         "repository": "https://github.com/pha4ge/primer-schemes",
-        "latest_doi": "https://doi.coming.soon/",
+        "latest_doi": "",
         "license": "CC-BY-4.0",
         "organisms": organisms,
     }
