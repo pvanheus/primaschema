@@ -21,29 +21,6 @@ SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "str
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
 
 
-# logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-# linkml_logger = logging.getLogger("linkml")
-# linkml_logger.setLevel(logging.WARNING)
-
-# # Create a custom logger for the specific module
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.INFO)
-
-# # Create a console handler for the logger
-# console_handler = logging.StreamHandler()
-# console_handler.setLevel(logging.INFO)
-
-# # Create a formatter for the console handler
-# formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-# console_handler.setFormatter(formatter)
-
-# # Add the console handler to the logger
-# logger.addHandler(console_handler)
-
-# # Disable propagation of log messages to the root logger
-# logger.propagate = False
-
-
 def scan(path):
     """Recursively yield DirEntry objects"""
     for entry in os.scandir(path):
@@ -67,8 +44,8 @@ def get_primer_schemes_path():
 
 
 def hash_string(string: str) -> str:
-    """Normalise case, sorting, terminal whitespace, and return prefixed SHA256 digest"""
-    checksum = hashlib.sha256(str(string).strip().upper().encode()).hexdigest()
+    """Normalise case, sorting, terminal spaces & return prefixed 64b of SHA256 hex"""
+    checksum = hashlib.sha256(str(string).strip().upper().encode()).hexdigest()[:16]
     return f"primaschema:{checksum}"
 
 
@@ -332,10 +309,8 @@ def build(
         out_dir.mkdir(parents=True, exist_ok=force)
     except FileExistsError:
         raise FileExistsError(f"Output directory {out_dir} already exists")
-    if not scheme.get("primer_checksum"):
-        scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
-    if not scheme.get("reference_checksum"):
-        scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
+    scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
+    scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
     with open(out_dir / "info.yml", "w") as scheme_fh:
         logging.info(f"Writing info.yml to {out_dir}/info.yml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
