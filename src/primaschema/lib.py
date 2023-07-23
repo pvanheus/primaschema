@@ -19,6 +19,7 @@ from linkml_runtime.utils.schemaview import SchemaView
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
+POSITION_FIELDS = ["chromStart", "chromEnd"]
 
 
 def scan(path):
@@ -393,11 +394,15 @@ def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     )
 
 
-def diff(bed1_path: Path, bed2_path: Path):
+def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
     """Show symmetric differences between records in two primer.bed files"""
     df1 = parse_primer_bed(bed1_path).assign(origin="bed1")
     df2 = parse_primer_bed(bed2_path).assign(origin="bed2")
-    return pd.concat([df1, df2]).drop_duplicates(subset=PRIMER_BED_FIELDS, keep=False)
+    if only_positions:
+        column_subset = POSITION_FIELDS
+    else:
+        column_subset = PRIMER_BED_FIELDS
+    return pd.concat([df1, df2]).drop_duplicates(subset=column_subset, keep=False)
 
 
 def show_non_ref_alts(scheme_dir: Path):
