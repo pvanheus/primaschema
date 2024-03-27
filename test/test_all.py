@@ -141,3 +141,19 @@ def test_diff():
 MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T         2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2"""
         == run_cmd.stdout.strip()
     )
+
+
+def test_calculate_intervals():
+    all_intervals = lib.compute_intervals(data_dir / "primer-schemes/artic/v4.1/primer.bed")
+    assert 'MN908947.3' in all_intervals
+    intervals = all_intervals['MN908947.3']
+    assert 'SARS-CoV-2_99' in intervals
+    assert intervals['SARS-CoV-2_99'] == (29452, 29854)
+
+
+def test_print_intervals():
+    run_cmd = run("primaschema intervals primer-schemes/artic/v4.1/primer.bed")
+
+    assert (
+        """MN908947.3\t29452\t29854\tSARS-CoV-2_99\n""" in run_cmd.stdout
+    )

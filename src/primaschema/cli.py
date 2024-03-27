@@ -130,6 +130,21 @@ def show_non_ref_alts(scheme_dir: Path):
     print(lib.show_non_ref_alts(scheme_dir=scheme_dir))
 
 
+def print_intervals(bed_path: Path):
+    """
+    Print intervals covered by primers in a BED file
+
+    :arg ref_path: Path of bed file
+    """
+    all_intervals = lib.compute_intervals(bed_path)
+    sorted_by_chrom = sorted(all_intervals.items())
+    for chrom, intervals in sorted_by_chrom:
+        sorted_interval_keys = sorted(intervals, key=lambda x: (x[0], x[1]))
+        for name in sorted_interval_keys:
+            interval = intervals[name]
+            print(f"{chrom}\t{interval[0]}\t{interval[1]}\t{name}")
+
+
 def main():
     defopt.run(
         {
@@ -144,6 +159,7 @@ def main():
             "6to7": six_to_seven,
             "7to6": seven_to_six,
             "show-non-ref-alts": show_non_ref_alts,
+            "intervals": print_intervals,
         },
         no_negated_flags=True,
         strict_kwonly=False,

@@ -2,7 +2,9 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shutil
+import sys
 from collections import defaultdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -411,3 +413,29 @@ def show_non_ref_alts(scheme_dir: Path):
             out_dir=temp_dir,
         )
         return diff(bed1_path=bed_path, bed2_path=Path(temp_dir) / "primer.bed")
+
+
+def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
+    # find primer positions for all primers in the bed file and compute maximum
+    # interval between primers of the same name
+
+    primer_name_re = re.compile(r'^(?P<name>.*)_(LEFT|RIGHT)(_alt[0-9]+)?$')
+    all_intervals: dict[str, dict[str, (int, int)]] = {}
+    for line in open(bed_path):
+        chrom, start, end, name, _, strand = line.strip().split("\t")[:6]
+        if chrom not in all_intervals:
+            all_intervals[chrom] = {}
+        intervals = all_intervals[chrom]
+        primer_match = primer_name_re.match(name)
+        if not primer_match:
+            raise ValueError(f"Invalid primer name {name}")
+        primer_name = primer_match.group("name")
+        if strand == '+':
+            start_pos = int(start)
+            end_pos = -1
+        if strand == '-':
+            start_pos = sys.maxsize
+            end_pos = int(end)
+        prev_start, prev_end = intervals.get(primer_name, (sys.maxsize, -1))
+        intervals[primer_name] = (min(prev_start, start_pos), max(prev_end, end_pos))
+    return all_intervals
