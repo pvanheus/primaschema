@@ -30,7 +30,7 @@ dependencies = [
     "pytest",
     "jsonschema",
     "pyyaml",
-    "linkml>=1.5.2",
+    "linkml==1.5.2",
 ]
 dynamic = ["version"]
 [project.scripts]
