@@ -109,14 +109,15 @@ def six_to_seven(bed_path: Path, fasta_path: Path, out_dir: Path = Path()):
     )
 
 
-def diff(bed1_path: Path, bed2_path: Path):
+def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
     """
     Show the symmetric difference of records in two bed files
 
     :arg bed_path1: Path of first bed file
     :arg bed_path2: Path of second bed file
+    :arg only_positions: Use only primer positions when computing differences
     """
-    df = lib.diff(bed1_path, bed2_path)
+    df = lib.diff(bed1_path, bed2_path, only_positions)
     if not df.empty:
         print(df.to_string(index=False))
 
