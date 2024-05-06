@@ -419,9 +419,13 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
     # find primer positions for all primers in the bed file and compute maximum
     # interval between primers of the same name
 
-    primer_name_re = re.compile(r'^(?P<name>.*)_(LEFT|RIGHT)(_alt[0-9]+)?$')
+    primer_name_re = re.compile(r'^(?P<name>.*)_(LEFT|RIGHT)(_.+)?$')
     all_intervals: dict[str, dict[str, (int, int)]] = {}
     for line in open(bed_path):
+        line_parts = line.strip().split('\t')
+        if len(line_parts) < 6:
+            # skip lines that don't have at least 6 fields
+            continue
         chrom, start, end, name, _, strand = line.strip().split("\t")[:6]
         if chrom not in all_intervals:
             all_intervals[chrom] = {}
