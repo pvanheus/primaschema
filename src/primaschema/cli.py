@@ -133,7 +133,7 @@ def show_non_ref_alts(scheme_dir: Path):
 
 def print_intervals(bed_path: Path):
     """
-    Print intervals covered by primers in a BED file
+    Show intervals covered by primers in a BED file
 
     :arg ref_path: Path of bed file
     """

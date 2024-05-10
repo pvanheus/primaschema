@@ -26,10 +26,10 @@ classifiers = [
 dependencies = [
     "biopython>=1.80",
     "defopt==6.4.0",
-    "pandas>=1.5.3",
     "jsonschema",
-    "pyyaml",
     "linkml==1.5.2",
+    "pandas>=1.5.3",
+    "pyyaml",
 ]
 
 [project.scripts]
