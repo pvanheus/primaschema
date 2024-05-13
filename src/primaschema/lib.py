@@ -1,4 +1,5 @@
 import hashlib
+import importlib.util
 import json
 import logging
 import os
@@ -14,9 +15,11 @@ import jsonschema
 import pandas as pd
 import yaml
 from Bio import SeqIO
+# from linkml.generators.pydanticgen import PydanticGenerator
 from linkml.generators.pythongen import PythonGenerator
-from linkml.validators import JsonSchemaDataValidator
 from linkml_runtime.utils.schemaview import SchemaView
+
+from primaschema.util import run
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -33,12 +36,21 @@ def scan(path):
             yield entry
 
 
+def import_class_from_path(file_path, class_name="PrimerScheme"):
+    spec = importlib.util.spec_from_file_location(class_name, file_path)
+    if spec is None:
+        raise ImportError(f"Failed to load schema from {file_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return getattr(module, class_name)
+
+
 def get_primer_schemes_path():
     """Locate primer-schemes repo root using environment variable"""
     env_var = "PRIMER_SCHEMES_PATH"
     if (
         not env_var in os.environ
-        or not (Path(os.environ[env_var]).resolve() / "schema").exists()
+        or not (Path(os.environ[env_var]).resolve() / Path("schema") / Path("primer_scheme.yml")).exists()
     ):
         raise RuntimeError(
             f'Invalid or unset environment variable {env_var} ({os.environ.get(env_var)}).\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
@@ -190,15 +202,22 @@ def validate_yaml_with_json_schema(yaml_path: Path, schema_path: Path):
     return jsonschema.validate(yaml_data, schema=schema)
 
 
-def validate_with_linkml_schema(yaml_path: Path, schema_path: Path):
-    schema_view = SchemaView(schema_path)
-    schema_gen = PythonGenerator(schema_view.schema)
-    schema_compiled = schema_gen.compile_module()
+def validate_with_linkml_schema(yaml_path: Path, full: bool = False):
     data = parse_yaml(yaml_path)
-    data_instance = schema_compiled.PrimerScheme(**data)
-    # print(yaml_dumper.dumps(data_instance))
-    validator = JsonSchemaDataValidator(schema_view.schema)
-    validator.validate_object(data_instance)
+    schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
+    pythonised_schema_path = get_primer_schemes_path() / "schema/primer_scheme.py"
+    if full:
+        schema_view = SchemaView(schema_path)
+        schema_gen = PythonGenerator(schema_view.schema)
+        schema_compiled = schema_gen.compile_module()
+        data_instance = schema_compiled.PrimerScheme(**data)
+    else:
+        if not pythonised_schema_path.exists():
+            run(f"gen-python {schema_path} > {pythonised_schema_path}")
+            logging.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
+            print(run("ls").stdout)
+        PrimerScheme = import_class_from_path(pythonised_schema_path)
+        data_instance = PrimerScheme(**data)
 
 
 def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
@@ -235,7 +254,7 @@ def infer_bed_type(bed_path: Path) -> str:
     return bed_type
 
 
-def validate(scheme_dir: Path, force: bool = False):
+def validate(scheme_dir: Path, full: bool = False, force: bool = False):
     # schema_path = get_primer_schemes_path() / "schema/scheme_schema.latest.json"
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
@@ -244,7 +263,8 @@ def validate(scheme_dir: Path, force: bool = False):
     # )
     schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
     validate_with_linkml_schema(
-        yaml_path=scheme_dir / "info.yml", schema_path=schema_path
+        yaml_path=scheme_dir / "info.yml",
+        full=full
     )
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
@@ -292,7 +312,7 @@ def validate_recursive(root_dir: Path, force: bool = False):
 
 
 def build(
-    scheme_dir: Path, out_dir: Path = Path(), force: bool = False, nested: bool = True
+    scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: bool = False, nested: bool = True
 ):
     """
     Build a PHA4GE primer scheme bundle.
@@ -300,7 +320,7 @@ def build(
     primer.bed or reference.bed, generate a directory containing info.yml including
     primer and reference checksums and a canonical primer.bed representation.
     """
-    validate(scheme_dir=scheme_dir, force=force)
+    validate(scheme_dir=scheme_dir, full=full, force=force)
     scheme = parse_yaml(scheme_dir / "info.yml")
     if nested:
         family = Path(scheme["name"].partition("-")[0])
@@ -327,7 +347,7 @@ def build(
     os.remove("scheme.bed")
 
 
-def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
+def build_recursive(root_dir: Path, full: bool = False, force: bool = False, nested: bool = False):
     """Build all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
@@ -336,7 +356,7 @@ def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
             scheme_dir = Path(entry.path).parent
             schemes_paths[scheme.get("name")] = scheme_dir
     for scheme, path in schemes_paths.items():
-        build(scheme_dir=path, force=force)
+        build(scheme_dir=path, full=full, force=force)
 
 
 def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):

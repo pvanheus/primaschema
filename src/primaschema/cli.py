@@ -32,47 +32,51 @@ def hash_ref(ref_path: Path):
     print(hex_digest)
 
 
-def validate(scheme_dir: Path):
+def validate(scheme_dir: Path, full: bool = False):
     """
     Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: Path of scheme.bed file
     :arg out_dir: Path of directory in which to save primer.bed
     :arg force: Overwrite existing output files
+    :arg full: Perform meticulous validation using full model
     """
-    return lib.validate(scheme_dir)
+    return lib.validate(scheme_dir, full=full)
 
 
-def validate_recursive(root_dir: Path, force: bool = False):
+def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
     """
     Recursively validate primer scheme bundles in the specified directory
 
     :arg root_dir: Path in which to search for schemes
+    :arg full: Perform meticulous validation using full model
     :arg force: Overwrite existing schemes and ignore hash check failures
     """
-    lib.validate_recursive(root_dir=root_dir, force=force)
+    lib.validate_recursive(root_dir=root_dir, full=full, force=force)
 
 
-def build(scheme_dir: Path, out_dir: Path = Path(), force: bool = False):
+def build(scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: bool = False):
     """
     Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: Path of input scheme directory
     :arg out_dir: Path of directory in which to save scheme
+    :arg full: Perform meticulous validation using full model
     :arg force: Overwrite existing output files
     """
-    lib.build(scheme_dir=scheme_dir, out_dir=out_dir, force=force)
+    lib.build(scheme_dir=scheme_dir, out_dir=out_dir, full=full, force=force)
 
 
-def build_recursive(root_dir: Path, force: bool = False, nested: bool = False):
+def build_recursive(root_dir: Path, full: bool = False, force: bool = False, nested: bool = False):
     """
     Recursively build primer scheme bundles in the specified directory
 
     :arg root_dir: Path in which to search for schemes
+    :arg full: Perform meticulous validation using full model
     :arg force: Overwrite existing schemes and ignore hash check failures
     :arg nested: Build definitions inside a nested dir structure of family/version
     """
-    lib.build_recursive(root_dir=root_dir, force=force, nested=nested)
+    lib.build_recursive(root_dir=root_dir, full=full, force=force, nested=nested)
 
 
 def build_manifest(root_dir: Path, schema_dir: Path = Path(), out_dir: Path = Path()):
