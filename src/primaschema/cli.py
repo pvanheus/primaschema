@@ -55,7 +55,9 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
     lib.validate_recursive(root_dir=root_dir, full=full, force=force)
 
 
-def build(scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: bool = False):
+def build(
+    scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: bool = False
+):
     """
     Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
@@ -67,7 +69,9 @@ def build(scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: b
     lib.build(scheme_dir=scheme_dir, out_dir=out_dir, full=full, force=force)
 
 
-def build_recursive(root_dir: Path, full: bool = False, force: bool = False, nested: bool = False):
+def build_recursive(
+    root_dir: Path, full: bool = False, force: bool = False, nested: bool = False
+):
     """
     Recursively build primer scheme bundles in the specified directory
 

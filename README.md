@@ -6,7 +6,7 @@ The toolkit for validating and building tiling amplicon PCR primer scheme defini
 
 
 
-## Install (Python 3.10+)
+## Install (Python 3.11+)
 
 ```shell
 # Latest stable release
@@ -20,6 +20,7 @@ pip install ./primaschema
 git clone https://github.com/pha4ge/primaschema.git
 cd primaschema
 pip install --editable '.[dev]'
+pre-commit install
 pytest
 ```
 

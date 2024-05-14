@@ -15,6 +15,7 @@ import jsonschema
 import pandas as pd
 import yaml
 from Bio import SeqIO
+
 # from linkml.generators.pydanticgen import PydanticGenerator
 from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
@@ -49,8 +50,12 @@ def get_primer_schemes_path():
     """Locate primer-schemes repo root using environment variable"""
     env_var = "PRIMER_SCHEMES_PATH"
     if (
-        not env_var in os.environ
-        or not (Path(os.environ[env_var]).resolve() / Path("schema") / Path("primer_scheme.yml")).exists()
+        env_var not in os.environ
+        or not (
+            Path(os.environ[env_var]).resolve()
+            / Path("schema")
+            / Path("primer_scheme.yml")
+        ).exists()
     ):
         raise RuntimeError(
             f'Invalid or unset environment variable {env_var} ({os.environ.get(env_var)}).\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
@@ -133,7 +138,7 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
     """
     Hash a 6 column scheme.bed file by first converting to 7 column primer.bed
     """
-    logging.info(f"Hashing scheme.bed using reference backfill")
+    logging.info("Hashing scheme.bed using reference backfill")
     ref_record = SeqIO.read(fasta_path, "fasta")
     df = parse_scheme_bed(bed_path)
     records = df.to_dict("records")
@@ -210,14 +215,14 @@ def validate_with_linkml_schema(yaml_path: Path, full: bool = False):
         schema_view = SchemaView(schema_path)
         schema_gen = PythonGenerator(schema_view.schema)
         schema_compiled = schema_gen.compile_module()
-        data_instance = schema_compiled.PrimerScheme(**data)
+        schema_compiled.PrimerScheme(**data)  # Errors on validation failure
     else:
         if not pythonised_schema_path.exists():
             run(f"gen-python {schema_path} > {pythonised_schema_path}")
             logging.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
             print(run("ls").stdout)
         PrimerScheme = import_class_from_path(pythonised_schema_path)
-        data_instance = PrimerScheme(**data)
+        PrimerScheme(**data)  # Errors on validation failure
 
 
 def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
@@ -255,17 +260,9 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    # schema_path = get_primer_schemes_path() / "schema/scheme_schema.latest.json"
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
-    # validate_yaml_with_json_schema(
-    #     yaml_path=scheme_dir / "info.yml", schema_path=schema_path
-    # )
-    schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
-    validate_with_linkml_schema(
-        yaml_path=scheme_dir / "info.yml",
-        full=full
-    )
+    validate_with_linkml_schema(yaml_path=scheme_dir / "info.yml", full=full)
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
@@ -298,7 +295,7 @@ def validate(scheme_dir: Path, full: bool = False, force: bool = False):
     logging.info(f"Validation successful for {scheme.get('name')} ")
 
 
-def validate_recursive(root_dir: Path, force: bool = False):
+def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
     """Validate all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
@@ -308,11 +305,15 @@ def validate_recursive(root_dir: Path, force: bool = False):
             schemes_paths[scheme] = scheme_dir
 
     for scheme, path in schemes_paths.items():
-        validate(scheme_dir=path, force=force)
+        validate(scheme_dir=path, full=full, force=force)
 
 
 def build(
-    scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: bool = False, nested: bool = True
+    scheme_dir: Path,
+    out_dir: Path = Path(),
+    full: bool = False,
+    force: bool = False,
+    nested: bool = True,
 ):
     """
     Build a PHA4GE primer scheme bundle.
@@ -347,7 +348,9 @@ def build(
     os.remove("scheme.bed")
 
 
-def build_recursive(root_dir: Path, full: bool = False, force: bool = False, nested: bool = False):
+def build_recursive(
+    root_dir: Path, full: bool = False, force: bool = False, nested: bool = False
+):
     """Build all schemes in a directory tree"""
     schemes_paths = {}
     for entry in scan(root_dir):
@@ -430,7 +433,6 @@ def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
 def show_non_ref_alts(scheme_dir: Path):
     """Show primer records with sequences not matching the reference sequence"""
     bed_path = scheme_dir / "primer.bed"
-    fasta_path = scheme_dir / "reference.fasta"
     with TemporaryDirectory() as temp_dir:
         convert_scheme_bed_to_primer_bed(
             bed_path=scheme_dir / "scheme.bed",
@@ -444,11 +446,11 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
     # find primer positions for all primers in the bed file and compute maximum
     # interval between primers of the same name
 
-    primer_name_re = re.compile(r'^(?P<name>.*)_(LEFT|RIGHT)(_.+)?$')
-    eden_primer_name_re = re.compile(r'^(?P<name>.*_[AB][0-9])(F|R)_\d+$')
+    primer_name_re = re.compile(r"^(?P<name>.*)_(LEFT|RIGHT)(_.+)?$")
+    eden_primer_name_re = re.compile(r"^(?P<name>.*_[AB][0-9])(F|R)_\d+$")
     all_intervals: dict[str, dict[str, (int, int)]] = {}
     for line in open(bed_path):
-        line_parts = line.strip().split('\t')
+        line_parts = line.strip().split("\t")
         if len(line_parts) < 6:
             # skip lines that don't have at least 6 fields
             continue
@@ -463,10 +465,10 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
             if not primer_name_re:
                 raise ValueError(f"Invalid primer name {name}")
         primer_name = primer_match.group("name")
-        if strand == '+':
+        if strand == "+":
             start_pos = int(start)
             end_pos = -1
-        if strand == '-':
+        if strand == "-":
             start_pos = sys.maxsize
             end_pos = int(end)
         prev_start, prev_end = intervals.get(primer_name, (sys.maxsize, -1))

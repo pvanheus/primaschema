@@ -57,8 +57,7 @@ def test_artic_v41_scheme_hash_matches_primer_hash():
 
 def test_eden_v1_schema_full():
     lib.validate_with_linkml_schema(
-        data_dir / "primer-schemes/eden/v1/info.yml",
-        full = True
+        data_dir / "primer-schemes/eden/v1/info.yml", full=True
     )
 
 
@@ -95,7 +94,7 @@ def test_validate_fail_five_columns():
 
 
 def test_validate_recursive():
-    run_cmd = "primaschema validate-recursive primer-schemes"
+    run("primaschema validate-recursive primer-schemes")
 
 
 def test_hash_bed():
@@ -104,12 +103,12 @@ def test_hash_bed():
 
 
 def test_build_from_primer_bed():
-    run_cmd = run("primaschema build primer-schemes/artic/v4.1 --force")
+    run("primaschema build primer-schemes/artic/v4.1 --force")
     run("rm -rf artic-v4.1")
 
 
 def test_build_from_scheme_bed():
-    run_cmd = run("primaschema build primer-schemes/eden/v1 --force")
+    run("primaschema build primer-schemes/eden/v1 --force")
     run("rm -rf eden-v1")
 
 
@@ -144,24 +143,21 @@ def test_diff():
     run_cmd = run(
         "primaschema diff primer-schemes/midnight/v1/primer.bed primer-schemes/midnight/v2/primer.bed"
     )
-    assert (
-        """chrom  chromStart  chromEnd                      name  poolName strand                 sequence origin
-MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T         2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2"""
-        == run_cmd.stdout.strip()
-    )
+    assert """chrom  chromStart  chromEnd                      name  poolName strand                 sequence origin
+MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T         2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2""" == run_cmd.stdout.strip()
 
 
 def test_calculate_intervals():
-    all_intervals = lib.compute_intervals(data_dir / "primer-schemes/artic/v4.1/primer.bed")
-    assert 'MN908947.3' in all_intervals
-    intervals = all_intervals['MN908947.3']
-    assert 'SARS-CoV-2_99' in intervals
-    assert intervals['SARS-CoV-2_99'] == (29452, 29854)
+    all_intervals = lib.compute_intervals(
+        data_dir / "primer-schemes/artic/v4.1/primer.bed"
+    )
+    assert "MN908947.3" in all_intervals
+    intervals = all_intervals["MN908947.3"]
+    assert "SARS-CoV-2_99" in intervals
+    assert intervals["SARS-CoV-2_99"] == (29452, 29854)
 
 
 def test_print_intervals():
     run_cmd = run("primaschema intervals primer-schemes/artic/v4.1/primer.bed")
 
-    assert (
-        """MN908947.3\t29452\t29854\tSARS-CoV-2_99\n""" in run_cmd.stdout
-    )
+    assert """MN908947.3\t29452\t29854\tSARS-CoV-2_99\n""" in run_cmd.stdout

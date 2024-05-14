@@ -1,6 +1,6 @@
 """A toolkit for tiling primer scheme defintions"""
 
-from pathlib import Path
+# from pathlib import Path
 
 __version__ = "0.2.0"
 
