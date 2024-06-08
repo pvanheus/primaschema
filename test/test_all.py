@@ -7,9 +7,10 @@ import pytest
 
 import primaschema.lib as lib
 
+from primaschema import primer_schemes_path
 
 data_dir = Path("test/data")
-schema_dir = Path(os.environ["PRIMER_SCHEMES_PATH"]).resolve() / "schema"
+schema_dir = primer_schemes_path.resolve() / "schema"
 
 
 def run(cmd, cwd=data_dir):  # Helper for CLI testing
@@ -72,12 +73,6 @@ def test_artic_v41_schema():
         data_dir / "primer-schemes/artic/v4.1/info.yml",
     )
 
-
-# Needs updating since reverting hash function to consume coordinates again. Needs BEDs creating for this case
-# def test_checksum_case_normalisation():
-#     seqs_a = ["ACGT", "CAGT"]
-#     seqs_b = ["ACGT", "cagt"]
-#     assert lib.hash_sequences(seqs_a) == lib.hash_sequences(seqs_b)
 def test_checksum_case_normalisation():
     assert lib.hash_bed(
         data_dir / "broken/different-case/eden-v1.primer.bed"

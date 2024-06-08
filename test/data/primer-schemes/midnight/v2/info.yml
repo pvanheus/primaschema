@@ -6,8 +6,8 @@ aliases:
 - midnight-idt-v1
 derived_from: midnight-v1
 developers:
-- person_name: Nikki Freed
-- person_name: Olin Silander
+- name: Nikki Freed
+- name: Olin Silander
 vendors:
 - organisation_name: Oxford Nanopore Technologies
   kit_name: MRT001.20

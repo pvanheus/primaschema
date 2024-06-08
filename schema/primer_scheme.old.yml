@@ -1,0 +1,135 @@
+id: https://github.com/pha4ge/primer-schemes/schemas/primer-scheme
+name: primer-scheme
+description: Data model for tiling PCR primer scheme definitions
+version: 0.10.0
+prefixes:
+  linkml: https://w3id.org/linkml/
+  schema: http://schema.org/
+  ORCID: http://identifiers.org/orcid/
+  GENEPIO: http://purl.obolibrary.org/obo/GENEPIO_
+  IAO: "https://bioregistry.io/reference/iao:"
+default_curi_maps:
+  - semweb_context
+imports:
+  - linkml:types
+default_range: string
+
+classes:
+  PrimerScheme:
+    tree_root: true
+    description: "Definition of a tiling amplicon PCR primer scheme"
+
+  Vendor:
+    class_uri: GENEPIO:0100674
+    description: "Vendor of oligoneucleotide primers matching this primer scheme definition"
+    mixins:
+      - Organisation
+    attributes:
+      kit_name:
+        slot_uri: GENEPIO:0100693
+        description: "Vendor-specific name for oligonucleotide primers matching this primer scheme definition"        
+
+  Developer:
+    abstract: true
+    attributes:
+      type:
+        designates_type: true
+        required: true
+      name:
+        description: "x"
+      url:
+        description: "x"
+
+  Person:
+    description: "A natural person"
+    is_a: Developer
+    attributes:
+      orcid:
+        description: "ORCID ('Open Researcher and Contributor IDentifier')"
+
+  Organisation:
+    description: "An organisation"
+    is_a: Developer
+
+slots:
+  schema_version:
+    required: true
+    description: "The version of the schema used to create this scheme definition"
+  name:
+    slot_uri: GENEPIO:0001456
+    required: true
+    identifier: true
+    description: "The canonical name of the primer scheme (lowercase)"
+    pattern: "^[\\da-z0-9_.-]+$"
+  display_name:
+    description: "The human-friendly display name of the primer scheme"
+  organism:
+    slot_uri: GENEPIO:0100682
+    required: true
+    description: "the name of the target organism of this primer scheme definition"
+  organism_aliases:
+    description: "Aliases for the name of the target organism of this primer scheme definition"
+    multivalued: true
+  aliases:
+    slot_uri: GENEPIO:0100670
+    description: Aliases for primer scheme name
+    multivalued: true
+    inlined_as_list: true
+  developers:
+    slot_uri: GENEPIO:0100673
+    description: "Persons and/or organisations responsible for developing this primer scheme"
+    required: true
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+    range: Developer
+  vendors:
+    description: "Vendors supplying oligonucleotide primers matching this primer scheme definition"
+    multivalued: true
+    inlined_as_list: true 
+    range: Vendor
+  amplicon_size:
+    slot_uri: GENEPIO:0001449
+    description: "The length of amplicons described by this primer scheme in base pairs (bp)"
+    range: integer
+    minimum_value: 1
+  repository_url:
+    slot_uri: GENEPIO:0100683
+    required: true
+    description: "URL of canonical  repository where primer scheme BED and reference files can be found"
+  notes:
+    description: "Notes about the amplicon primer scheme"
+    slot_uri: GENEPIO:0100672
+    multivalued: true
+    inlined_as_list: true
+    range: string
+  primer_scheme_status:
+    slot_uri: GENEPIO:0100681
+    description: "The status of this primer scheme (e.g. published, deprecated)"
+    range: PrimerSchemeStatus
+    ifabsent: string(PUBLISHED)
+  citations:
+    slot_uri: IAO:0000301
+    description: "URLs of publications describing the scheme (DOIs preferred when available)"
+    multivalued: true
+    inlined_as_list: true
+  primer_checksum:
+    slot_uri: GENEPIO:0100675
+    description: "Checksum for the primer scheme BED file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema"
+  reference_checksum: 
+    description: "Checksum for the reference FASTA file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema"
+  derived_from:
+    slot_uri: GENEPIO:0100671
+    description: "Canonical name of the primer scheme from which this scheme was derived"
+  organisation_name:
+    required: true
+  home_page:
+    description: "Developer website URL (e.g. home page)"
+
+enums:
+  PrimerSchemeStatus:
+    description: "Status of this amplicon primer scheme"
+    permissible_values:
+      PUBLISHED:
+      DEPRECATED:
+      DRAFT:
