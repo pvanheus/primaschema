@@ -1,7 +1,7 @@
 id: https://github.com/pha4ge/primer-schemes/schemas/primer-scheme
 name: primer-scheme
 description: Data model for tiling PCR primer scheme definitions
-version: 0.9.0
+version: 1.0.0-alpha
 prefixes:
   linkml: https://w3id.org/linkml/
   schema: http://schema.org/
@@ -29,9 +29,11 @@ classes:
       - derived_from
       - developers
       - vendors
-      - amplicon_size
+      - amplicon_length
       - notes
       - citations
+      - license
+      - source_url
       - primer_checksum
       - reference_checksum
       - repository_url
@@ -39,28 +41,14 @@ classes:
   Vendor:
     class_uri: GENEPIO:0100674
     description: "Vendor of the primers described in the amplicon scheme or a kit containing these primers"
-    mixins:
-      - Organisation
     attributes:
+      organisation_name:
+        description: "The name of the vendor"
+      home_page:
+        description: "A link to the home page of the vendor"
       kit_name:
         slot_uri: GENEPIO:0100693
-        description: "Vendor specific kit name for primer kit"        
-
-  Entity:
-  
-  Person:
-    description: "A natural person"
-    is_a: Entity
-    slots:
-      - person_name
-      - orcid
-  
-  Organisation:
-    description: "An organisation"
-    is_a: Entity
-    slots:
-      - organisation_name
-      - home_page
+        description: "Vendor specific kit name for primer kit"
 
 slots:
   schema_version:
@@ -91,26 +79,21 @@ slots:
     description: Persons or organisations responsible for developing the primer scheme
     required: true
     multivalued: true
-    inlined: true
-    inlined_as_list: true
-    range: Entity
-    any_of:
-      - range: Person
-      - range: Organisation
   vendors:
     description: "Vendors where one can purchase the primers described in the amplicon scheme or a kit containing these primers"
     multivalued: true
     inlined_as_list: true 
     range: Vendor
-  amplicon_size:
+  amplicon_length:
     slot_uri: GENEPIO:0001449
     description: "The length (in base pairs) of an amplicon in the primer scheme"
     range: integer
     minimum_value: 1
   repository_url:
     slot_uri: GENEPIO:0100683
-    required: true
-    description: "Link to repository where primer scheme BED and reference files can be found"
+    description: "GitHub URL of PHA4GE compatible primer scheme scheme definition"
+  source_url:
+    description: "Source URL of primer scheme BED file, if available, e.g. GitHub repository URL"
   notes:
     description: "Notes about the amplicon primer scheme"
     slot_uri: GENEPIO:0100672
@@ -122,6 +105,8 @@ slots:
     description: "The status of this primer scheme (e.g. published, deprecated)"
     range: PrimerSchemeStatus
     ifabsent: string(PUBLISHED)
+  license:
+    description: "License under which the primer scheme is distributed"
   citations:
     slot_uri: IAO:0000301
     description: "URLs of publications describing the scheme (DOIs preferred when available)"

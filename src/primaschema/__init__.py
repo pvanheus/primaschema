@@ -6,3 +6,5 @@ __version__ = "0.2.0"
 
 pkg_dir = Path(__file__)
 primer_schemes_path = pkg_dir.parents[2]
+schema_dir = primer_schemes_path / "schema"
+schema_path = schema_dir / "primer_scheme.yml"

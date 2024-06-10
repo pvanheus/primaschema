@@ -27,7 +27,7 @@ dependencies = [
     "biopython>=1.80",
     "defopt==6.4.0",
     "jsonschema",
-    "linkml==1.5.2",
+    "linkml",
     "pandas>=1.5.3",
     "pyyaml",
 ]

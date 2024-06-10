@@ -19,9 +19,9 @@ from Bio import SeqIO
 # from linkml.generators.pydanticgen import PydanticGenerator
 from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
+from linkml.validators import JsonSchemaDataValidator
 
-from primaschema import primer_schemes_path
-from primaschema.util import run
+from primaschema import primer_schemes_path, schema_path
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -209,22 +209,33 @@ def validate_yaml_with_json_schema(yaml_path: Path, schema_path: Path):
     return jsonschema.validate(yaml_data, schema=schema)
 
 
-def validate_with_linkml_schema(yaml_path: Path, full: bool = False):
+def validate_with_linkml_schema(yaml_path: Path, schema_path: Path, full: bool = False):
+    schema_view = SchemaView(schema_path)
+    schema_gen = PythonGenerator(schema_view.schema)
+    schema_compiled = schema_gen.compile_module()
     data = parse_yaml(yaml_path)
-    schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
-    pythonised_schema_path = get_primer_schemes_path() / "schema/primer_scheme.py"
-    if full:
-        schema_view = SchemaView(schema_path)
-        schema_gen = PythonGenerator(schema_view.schema)
-        schema_compiled = schema_gen.compile_module()
-        schema_compiled.PrimerScheme(**data)  # Errors on validation failure
-    else:
-        if not pythonised_schema_path.exists():
-            run(f"gen-python {schema_path} > {pythonised_schema_path}")
-            logging.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
-            print(run("ls").stdout)
-        PrimerScheme = import_class_from_path(pythonised_schema_path)
-        PrimerScheme(**data)  # Errors on validation failure
+    data_instance = schema_compiled.PrimerScheme(**data)
+    # print(yaml_dumper.dumps(data_instance))
+    validator = JsonSchemaDataValidator(schema_view.schema)
+    validator.validate_object(data_instance)
+
+
+# def validate_with_linkml_schema(yaml_path: Path, full: bool = False):
+#     data = parse_yaml(yaml_path)
+#     schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
+#     pythonised_schema_path = get_primer_schemes_path() / "schema/primer_scheme.py"
+#     if full:
+#         schema_view = SchemaView(schema_path)
+#         schema_gen = PythonGenerator(schema_view.schema)
+#         schema_compiled = schema_gen.compile_module()
+#         schema_compiled.PrimerScheme(**data)  # Errors on validation failure
+#     else:
+#         if not pythonised_schema_path.exists():
+#             run(f"gen-python {schema_path} > {pythonised_schema_path}")
+#             logging.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
+#             print(run("ls").stdout)
+#         PrimerScheme = import_class_from_path(pythonised_schema_path)
+#         PrimerScheme(**data)  # Errors on validation failure
 
 
 def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
@@ -264,7 +275,10 @@ def infer_bed_type(bed_path: Path) -> str:
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
-    validate_with_linkml_schema(yaml_path=scheme_dir / "info.yml", full=full)
+    validate_with_linkml_schema(
+        yaml_path=scheme_dir / "info.yml", schema_path=schema_path
+    )
+    # validate_with_linkml_schema(yaml_path=scheme_dir / "info.yml", full=full)
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
@@ -394,6 +408,7 @@ def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
         family_example_name = families_names[family][0]
         family_data["organism"] = names_schemes[family_example_name]["organism"]
         versions_data = []
+        repository_url = names_schemes[name].get("repository_url", "")
         for name in sorted(names):
             if names_schemes[name].get("display_name"):
                 display_name = names_schemes[name]["display_name"]
@@ -404,7 +419,7 @@ def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
                     "name": name,
                     "display_name": display_name,
                     "version": name.partition("-")[2],
-                    "repository": names_schemes[name]["repository_url"],
+                    "repository": repository_url,
                 }
             )
             logging.info(f"Reading {name}")
