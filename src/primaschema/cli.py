@@ -14,7 +14,7 @@ def hash_bed(bed_path: Path):
     """
     Generate a bed file checksum
 
-    :arg ref_path: Path of bed file
+    :arg bed_path: Path of bed file
     """
     hex_digest = lib.hash_bed(bed_path)
     print("BED checksum:", file=sys.stderr)
@@ -154,6 +154,18 @@ def print_intervals(bed_path: Path):
             print(f"{chrom}\t{interval[0]}\t{interval[1]}\t{name}")
 
 
+def plot(bed_path: Path):
+    """
+    Plot amplicon and primer positions given a 7 column primer.bed file
+    Requires primers named {scheme-name}_{amplicon-number}…
+    Plots a row per amplicon per reference chromosome
+    Supported out_path extensions: html (interactive), pdf, png, svg
+
+    :arg bed_path: Path of primer.bed file
+    """
+    lib.plot(bed_path)
+
+
 def main():
     defopt.run(
         {
@@ -169,6 +181,7 @@ def main():
             "7to6": seven_to_six,
             "show-non-ref-alts": show_non_ref_alts,
             "intervals": print_intervals,
+            "plot": plot,
         },
         no_negated_flags=True,
         strict_kwonly=False,

@@ -12,9 +12,14 @@ from tempfile import TemporaryDirectory
 from typing import Literal
 
 import jsonschema
-import pandas as pd
 import yaml
+
+import altair as alt
+import pandas as pd
+
+from natsort import natsorted
 from Bio import SeqIO
+
 
 # from linkml.generators.pydanticgen import PydanticGenerator
 from linkml.generators.pythongen import PythonGenerator
@@ -491,3 +496,66 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
         prev_start, prev_end = intervals.get(primer_name, (sys.maxsize, -1))
         intervals[primer_name] = (min(prev_start, start_pos), max(prev_end, end_pos))
     return all_intervals
+
+
+def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
+    """
+    Plot amplicon and primer positions from a 7 column primer.bed file
+    Requires primers to be named {scheme-name}_{amplicon-number}…
+    Plots one row per reference chromosome
+    Supported out_path extensions: html (interactive), pdf, png, svg
+    """
+    bed_df = parse_primer_bed(bed_path)
+    bed_df["amplicon"] = bed_df["name"].str.split("_").str[1]
+    print(pd.concat([bed_df.head(4), bed_df.tail(4)]))
+    amp_df = (
+        bed_df.groupby(["chrom", "amplicon"])
+        .agg(min_start=("chromStart", "min"), max_end=("chromEnd", "max"))
+        .reset_index()
+    )
+    amp_df["is_amplicon"] = True
+    sorted_amplicons = natsorted(bed_df["amplicon"].unique())
+    print(amp_df)
+
+    bed_df["is_amplicon"] = False
+    amp_df = amp_df.rename(columns={"min_start": "chromStart", "max_end": "chromEnd"})
+
+    combined_df = pd.concat([bed_df, amp_df], ignore_index=True)
+
+    primer_marks = (
+        alt.Chart(combined_df)
+        .transform_filter(alt.datum.is_amplicon == False)  # noqa
+        .mark_line(size=15)
+        .encode(
+            x="chromStart:Q",
+            x2="chromEnd:Q",
+            y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
+            color=alt.Color("strand:N").scale(scheme="set2"),
+            tooltip=["name:N", "chromStart:Q", "chromEnd:Q"],
+        )
+        .properties(
+            width=1000,
+        )
+    )
+
+    amplicon_marks = (
+        alt.Chart(combined_df)
+        .transform_filter(alt.datum.is_amplicon == True)  # noqa
+        .mark_rule(size=2)
+        .encode(
+            x="chromStart:Q",
+            x2="chromEnd:Q",
+            y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
+            tooltip=["amplicon:N", "chromStart:Q", "chromEnd:Q"],
+        )
+        .properties(
+            width=1000,
+        )
+    )
+
+    combined_chart = alt.layer(primer_marks, amplicon_marks).facet(
+        # row="chrom:O"
+        row=alt.Row("chrom:O", header=alt.Header(labelOrient="top"), title="")
+    )
+
+    combined_chart.interactive().save(str(out_path))
