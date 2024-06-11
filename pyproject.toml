@@ -47,3 +47,11 @@ dev = [
     "pre-commit",
     "flit"
 ]
+
+[tool.flit.sdist]
+include = [
+    "schema/**"
+]
+
+[tool.flit.metadata]
+module = "primaschema"
