@@ -15,7 +15,7 @@ keywords = ["genomics"]
 license = {text = "MIT License"}
 classifiers = [
     "Framework :: Django",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",

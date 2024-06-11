@@ -156,10 +156,8 @@ def print_intervals(bed_path: Path):
 
 def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     """
-    Plot amplicon and primer positions given a 7 column primer.bed file
-    Requires primers named {scheme-name}_{amplicon-number}…
-    Plots a row per amplicon per reference chromosome
-    Supported out_path extensions: html (interactive), pdf, png, svg
+    Plot amplicon and primer coords from 7 column primer.bed
+
 
     :arg bed_path: path of primer.bed file
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)

@@ -36,11 +36,13 @@ export PRIMER_SCHEMES_PATH="/path/to/primer-schemes"
 ## Usage
 
 ```
-% primaschema --help
-usage: primaschema [-h] [--version] {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,build-manifest,diff,6to7,7to6,show-non-ref-alts,intervals} ...
+% primaschema -h
+usage: primaschema [-h] [--version]
+                   {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,build-manifest,diff,6to7,7to6,show-non-ref-alts,intervals,plot}
+                   ...
 
 positional arguments:
-  {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,build-manifest,diff,6to7,7to6,show-non-ref-alts,intervals}
+  {hash-ref,hash-bed,validate,validate-recursive,build,build-recursive,build-manifest,diff,6to7,7to6,show-non-ref-alts,intervals,plot}
     hash-ref            Generate reference sequence checksum
     hash-bed            Generate a bed file checksum
     validate            Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
@@ -53,6 +55,7 @@ positional arguments:
     7to6                Convert a 7 column primer.bed file to a 6 column scheme.bed file by droppign a column
     show-non-ref-alts   Show primer records with sequences not matching the reference sequence
     intervals           Show intervals covered by primers in a BED file
+    plot                Plot amplicon and primer coords from 7 column primer.bed
 
 options:
   -h, --help            show this help message and exit
