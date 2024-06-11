@@ -26,7 +26,7 @@ from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml.validators import JsonSchemaDataValidator
 
-from primaschema import primer_schemes_path, schema_path
+from primaschema import schema_path
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -52,21 +52,21 @@ def import_class_from_path(file_path, class_name="PrimerScheme"):
     return getattr(module, class_name)
 
 
-def get_primer_schemes_path():
-    """Locate primer-schemes repo root using environment variable"""
-    env_var = "PRIMER_SCHEMES_PATH"
-    if (
-        env_var in os.environ
-        and (
-            Path(os.environ[env_var]).resolve()
-            / Path("schema")
-            / Path("primer_scheme.yml")
-        ).exists()
-    ):
-        result = Path(os.environ[env_var]).resolve()
-    else:
-        result = primer_schemes_path
-    return result
+# def get_primer_schemes_path():
+#     """Locate primer-schemes repo root using environment variable"""
+#     env_var = "PRIMER_SCHEMES_PATH"
+#     if (
+#         env_var not in os.environ
+#         or not (
+#             Path(os.environ[env_var]).resolve()
+#             / Path("schema")
+#             / Path("primer_scheme.yml")
+#         ).exists()
+#     ):
+#         raise RuntimeError(
+#             f'Invalid or unset environment variable {env_var} ({os.environ.get(env_var)}).\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
+#         )
+#     return Path(os.environ[env_var]).resolve()
 
 
 def hash_string(string: str) -> str:
@@ -384,7 +384,7 @@ def build_recursive(
 
 def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
-    schema_path = get_primer_schemes_path() / "schema/manifest.json"
+    schema_path = schema_dir / "manifest.json"
     organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
     manifest = {
         "schema_version": "0.9.0",
