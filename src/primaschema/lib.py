@@ -507,7 +507,7 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     """
     bed_df = parse_primer_bed(bed_path)
     bed_df["amplicon"] = bed_df["name"].str.split("_").str[1]
-    print(pd.concat([bed_df.head(4), bed_df.tail(4)]))
+    logging.debug(pd.concat([bed_df.head(4), bed_df.tail(4)]))
     amp_df = (
         bed_df.groupby(["chrom", "amplicon"])
         .agg(min_start=("chromStart", "min"), max_end=("chromEnd", "max"))
@@ -515,7 +515,7 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     )
     amp_df["is_amplicon"] = True
     sorted_amplicons = natsorted(bed_df["amplicon"].unique())
-    print(amp_df)
+    logging.debug(amp_df)
 
     bed_df["is_amplicon"] = False
     amp_df = amp_df.rename(columns={"min_start": "chromStart", "max_end": "chromEnd"})
@@ -527,7 +527,7 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
         .transform_filter(alt.datum.is_amplicon == False)  # noqa
         .mark_line(size=15)
         .encode(
-            x="chromStart:Q",
+            x=alt.X("chromStart:Q", title=None),
             x2="chromEnd:Q",
             y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
             color=alt.Color("strand:N").scale(scheme="set2"),
@@ -537,13 +537,12 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
             width=1000,
         )
     )
-
     amplicon_marks = (
         alt.Chart(combined_df)
         .transform_filter(alt.datum.is_amplicon == True)  # noqa
         .mark_rule(size=2)
         .encode(
-            x="chromStart:Q",
+            x=alt.X("chromStart:Q", title=None),
             x2="chromEnd:Q",
             y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
             tooltip=["amplicon:N", "chromStart:Q", "chromEnd:Q"],
@@ -552,10 +551,9 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
             width=1000,
         )
     )
-
     combined_chart = alt.layer(primer_marks, amplicon_marks).facet(
         # row="chrom:O"
         row=alt.Row("chrom:O", header=alt.Header(labelOrient="top"), title="")
     )
-
     combined_chart.interactive().save(str(out_path))
+    logging.info(f"Plot saved ({out_path})")

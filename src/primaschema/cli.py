@@ -14,7 +14,7 @@ def hash_bed(bed_path: Path):
     """
     Generate a bed file checksum
 
-    :arg bed_path: Path of bed file
+    :arg bed_path: path of bed file
     """
     hex_digest = lib.hash_bed(bed_path)
     print("BED checksum:", file=sys.stderr)
@@ -25,7 +25,7 @@ def hash_ref(ref_path: Path):
     """
     Generate reference sequence checksum
 
-    :arg ref_path: Path of reference sequence
+    :arg ref_path: path of reference sequence
     """
     hex_digest = lib.hash_ref(ref_path)
     print("Reference checksum:", file=sys.stderr)
@@ -36,10 +36,10 @@ def validate(scheme_dir: Path, full: bool = False):
     """
     Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
-    :arg scheme_dir: Path of scheme.bed file
-    :arg out_dir: Path of directory in which to save primer.bed
-    :arg force: Overwrite existing output files
-    :arg full: Perform meticulous validation using full model
+    :arg scheme_dir: path of scheme.bed file
+    :arg out_dir: path of directory in which to save primer.bed
+    :arg force: overwrite existing output files
+    :arg full: perform meticulous validation using full model
     """
     return lib.validate(scheme_dir, full=full)
 
@@ -48,9 +48,9 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
     """
     Recursively validate primer scheme bundles in the specified directory
 
-    :arg root_dir: Path in which to search for schemes
-    :arg full: Perform meticulous validation using full model
-    :arg force: Overwrite existing schemes and ignore hash check failures
+    :arg root_dir: path in which to search for schemes
+    :arg full: perform meticulous validation using full model
+    :arg force: overwrite existing schemes and ignore hash check failures
     """
     lib.validate_recursive(root_dir=root_dir, full=full, force=force)
 
@@ -61,10 +61,10 @@ def build(
     """
     Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
-    :arg scheme_dir: Path of input scheme directory
-    :arg out_dir: Path of directory in which to save scheme
-    :arg full: Perform meticulous validation using full model
-    :arg force: Overwrite existing output files
+    :arg scheme_dir: path of input scheme directory
+    :arg out_dir: path of directory in which to save scheme
+    :arg full: perform meticulous validation using full model
+    :arg force: overwrite existing output files
     """
     lib.build(scheme_dir=scheme_dir, out_dir=out_dir, full=full, force=force)
 
@@ -75,10 +75,10 @@ def build_recursive(
     """
     Recursively build primer scheme bundles in the specified directory
 
-    :arg root_dir: Path in which to search for schemes
-    :arg full: Perform meticulous validation using full model
-    :arg force: Overwrite existing schemes and ignore hash check failures
-    :arg nested: Build definitions inside a nested dir structure of family/version
+    :arg root_dir: path in which to search for schemes
+    :arg full: perform meticulous validation using full model
+    :arg force: overwrite existing schemes and ignore hash check failures
+    :arg nested: build definitions inside a nested dir structure of family/version
     """
     lib.build_recursive(root_dir=root_dir, full=full, force=force, nested=nested)
 
@@ -87,9 +87,9 @@ def build_manifest(root_dir: Path, schema_dir: Path = Path(), out_dir: Path = Pa
     """
     Build a complete manifest of schemes contained in the specified directory
 
-    :arg root_dir: Path in which to search for schemes
-    :arg schema_dir: Path of schema directory
-    :arg out_dir: Path of directory in which to save manifest
+    :arg root_dir: path in which to search for schemes
+    :arg schema_dir: path of schema directory
+    :arg out_dir: path of directory in which to save manifest
     """
     lib.build_manifest(root_dir=root_dir, schema_dir=schema_dir, out_dir=out_dir)
 
@@ -98,8 +98,8 @@ def seven_to_six(bed_path: Path, out_dir: Path = Path()):
     """
     Convert a 7 column primer.bed file to a 6 column scheme.bed file by droppign a column
 
-    :arg bed_path: Path of primer.bed file
-    :arg out_dir: Path of directory in which to save primer.bed
+    :arg bed_path: path of primer.bed file
+    :arg out_dir: path of directory in which to save primer.bed
     """
     lib.convert_primer_bed_to_scheme_bed(bed_path=bed_path, out_dir=out_dir)
 
@@ -108,9 +108,9 @@ def six_to_seven(bed_path: Path, fasta_path: Path, out_dir: Path = Path()):
     """
     Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
 
-    :arg bed_path: Path of scheme.bed file
-    :arg fasta_path: Path of reference sequence
-    :arg out_dir: Path of directory in which to save primer.bed
+    :arg bed_path: path of scheme.bed file
+    :arg fasta_path: path of reference sequence
+    :arg out_dir: path of directory in which to save primer.bed
     """
     lib.convert_scheme_bed_to_primer_bed(
         bed_path=bed_path, fasta_path=fasta_path, out_dir=out_dir
@@ -121,8 +121,8 @@ def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
     """
     Show the symmetric difference of records in two bed files
 
-    :arg bed_path1: Path of first bed file
-    :arg bed_path2: Path of second bed file
+    :arg bed_path1: path of first bed file
+    :arg bed_path2: path of second bed file
     :arg only_positions: Use only primer positions when computing differences
     """
     df = lib.diff(bed1_path, bed2_path, only_positions)
@@ -134,7 +134,7 @@ def show_non_ref_alts(scheme_dir: Path):
     """
     Show primer records with sequences not matching the reference sequence
 
-    :arg scheme_dir: Path of input scheme directory
+    :arg scheme_dir: path of input scheme directory
     """
     print(lib.show_non_ref_alts(scheme_dir=scheme_dir))
 
@@ -143,7 +143,7 @@ def print_intervals(bed_path: Path):
     """
     Show intervals covered by primers in a BED file
 
-    :arg ref_path: Path of bed file
+    :arg ref_path: path of bed file
     """
     all_intervals = lib.compute_intervals(bed_path)
     sorted_by_chrom = sorted(all_intervals.items())
@@ -154,14 +154,15 @@ def print_intervals(bed_path: Path):
             print(f"{chrom}\t{interval[0]}\t{interval[1]}\t{name}")
 
 
-def plot(bed_path: Path):
+def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     """
     Plot amplicon and primer positions given a 7 column primer.bed file
     Requires primers named {scheme-name}_{amplicon-number}…
     Plots a row per amplicon per reference chromosome
     Supported out_path extensions: html (interactive), pdf, png, svg
 
-    :arg bed_path: Path of primer.bed file
+    :arg bed_path: path of primer.bed file
+    :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
     """
     lib.plot(bed_path)
 
