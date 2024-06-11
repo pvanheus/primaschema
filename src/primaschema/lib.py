@@ -531,7 +531,11 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
             x2="chromEnd:Q",
             y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
             color=alt.Color("strand:N").scale(scheme="set2"),
-            tooltip=["name:N", "chromStart:Q", "chromEnd:Q"],
+            tooltip=[
+                alt.Tooltip("name:N", title="Primer name"),
+                alt.Tooltip("chromStart:Q", title="start"),
+                alt.Tooltip("chromEnd:Q", title="end"),
+            ],
         )
         .properties(
             width=1000,
@@ -545,7 +549,11 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
             x=alt.X("chromStart:Q", title=None),
             x2="chromEnd:Q",
             y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
-            tooltip=["amplicon:N", "chromStart:Q", "chromEnd:Q"],
+            tooltip=[
+                alt.Tooltip("amplicon:N", title="Amplicon name"),
+                alt.Tooltip("chromStart:Q", title="Min primer start"),
+                alt.Tooltip("chromEnd:Q", title="Max primer end"),
+            ],
         )
         .properties(
             width=1000,

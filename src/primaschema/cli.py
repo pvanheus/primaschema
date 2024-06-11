@@ -164,7 +164,7 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     :arg bed_path: path of primer.bed file
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
     """
-    lib.plot(bed_path)
+    lib.plot(bed_path=bed_path, out_path=out_path)
 
 
 def main():
