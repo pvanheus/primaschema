@@ -48,10 +48,6 @@ dev = [
     "flit"
 ]
 
-[tool.flit.sdist]
-include = [
-    "schema/**"
-]
+[tool.flit.external-data]
+directory = "schema"
 
-[tool.flit.metadata]
-module = "primaschema"
