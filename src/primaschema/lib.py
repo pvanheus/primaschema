@@ -26,7 +26,7 @@ from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml.validators import JsonSchemaDataValidator
 
-from primaschema import schema_path
+from primaschema import primer_scheme_schema_path, organisms_path, manifest_schema_path
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -280,7 +280,7 @@ def validate(scheme_dir: Path, full: bool = False, force: bool = False):
     logging.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
     validate_with_linkml_schema(
-        yaml_path=scheme_dir / "info.yml", schema_path=schema_path
+        yaml_path=scheme_dir / "info.yml", schema_path=primer_scheme_schema_path
     )
     # validate_with_linkml_schema(yaml_path=scheme_dir / "info.yml", full=full)
     scheme = parse_yaml(scheme_dir / "info.yml")
@@ -382,10 +382,9 @@ def build_recursive(
         build(scheme_dir=path, full=full, force=force)
 
 
-def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
+def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
-    schema_path = schema_dir / "manifest.json"
-    organisms = parse_yaml(Path(schema_dir) / "organisms.yml")
+    organisms = parse_yaml(organisms_path)
     manifest = {
         "schema_version": "0.9.0",
         "metadata": "The PHA4GE list of tiling amplicon primer schemes",
@@ -436,7 +435,7 @@ def build_manifest(root_dir: Path, schema_dir: Path, out_dir: Path = Path()):
         logging.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
         yaml.dump(data=manifest, stream=fh, sort_keys=False)
     validate_yaml_with_json_schema(
-        yaml_path=out_dir / manifest_file_name, schema_path=schema_path
+        yaml_path=out_dir / manifest_file_name, schema_path=manifest_schema_path
     )
 
 

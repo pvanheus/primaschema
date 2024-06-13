@@ -6,7 +6,7 @@ import pytest
 
 import primaschema.lib as lib
 
-from primaschema import schema_dir, schema_path
+from primaschema import primer_scheme_schema_path
 
 data_dir = Path("test/data")
 
@@ -65,7 +65,7 @@ def test_artic_v41_scheme_hash_matches_primer_hash():
 def test_eden_v1_schema_full():
     lib.validate_with_linkml_schema(
         data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1/info.yml",
-        schema_path=schema_path,
+        schema_path=primer_scheme_schema_path,
         full=True,
     )
 
@@ -73,14 +73,14 @@ def test_eden_v1_schema_full():
 def test_eden_v1_schema():
     lib.validate_with_linkml_schema(
         data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1/info.yml",
-        schema_path=schema_path,
+        schema_path=primer_scheme_schema_path,
     )
 
 
 def test_artic_v41_schema():
     lib.validate_with_linkml_schema(
         data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/info.yml",
-        schema_path=schema_path,
+        schema_path=primer_scheme_schema_path,
     )
 
 
@@ -124,7 +124,7 @@ def test_build_recursive():
 
 
 def test_build_manifest():
-    lib.build_manifest(root_dir=data_dir / "primer-schemes", schema_dir=schema_dir)
+    lib.build_manifest(root_dir=data_dir / "primer-schemes")
     run("rm -rf built index.yml", cwd="./")
 
 
