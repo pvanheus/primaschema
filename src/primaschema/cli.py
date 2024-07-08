@@ -1,13 +1,9 @@
-import logging
 import sys
 from pathlib import Path
 
 import defopt
 
 import primaschema.lib as lib
-
-
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
 def hash_bed(bed_path: Path):

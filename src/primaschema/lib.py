@@ -33,6 +33,8 @@ SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "str
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
 POSITION_FIELDS = ["chromStart", "chromEnd"]
 
+logger = logging.getLogger("primaschema")
+
 
 def scan(path):
     """Recursively yield DirEntry objects"""
@@ -144,7 +146,7 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
     """
     Hash a 6 column scheme.bed file by first converting to 7 column primer.bed
     """
-    logging.info("Hashing scheme.bed using reference backfill")
+    logger.info("Hashing scheme.bed using reference backfill")
     ref_record = SeqIO.read(fasta_path, "fasta")
     df = parse_scheme_bed(bed_path)
     records = df.to_dict("records")
@@ -236,7 +238,7 @@ def validate_with_linkml_schema(yaml_path: Path, schema_path: Path, full: bool =
 #     else:
 #         if not pythonised_schema_path.exists():
 #             run(f"gen-python {schema_path} > {pythonised_schema_path}")
-#             logging.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
+#             logger.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
 #             print(run("ls").stdout)
 #         PrimerScheme = import_class_from_path(pythonised_schema_path)
 #         PrimerScheme(**data)  # Errors on validation failure
@@ -253,7 +255,7 @@ def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
             f"Scheme bed files should have 6 columns: {SCHEME_BED_FIELDS}"
         )
     else:
-        logging.info(f"Detected {bed_type} bed file with {bed_columns} columns")
+        logger.info(f"Detected {bed_type} bed file with {bed_columns} columns")
 
     if bed_type == "primer":
         hash_primer_bed(bed_path)
@@ -277,7 +279,7 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    logging.info(f"Validating {scheme_dir}")
+    logger.info(f"Validating {scheme_dir}")
     validate_bed(scheme_dir / "primer.bed", bed_type="primer")
     validate_with_linkml_schema(
         yaml_path=scheme_dir / "info.yml", schema_path=primer_scheme_schema_path
@@ -312,7 +314,7 @@ def validate(scheme_dir: Path, full: bool = False, force: bool = False):
         logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
-    logging.info(f"Validation successful for {scheme.get('name')} ")
+    logger.info(f"Validation successful for {scheme.get('name')} ")
 
 
 def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
@@ -320,11 +322,12 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
     schemes_paths = {}
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
+            scheme_info = parse_yaml(entry.path)
+            scheme_name = scheme_info["name"]
             scheme_dir = Path(entry.path).parent
-            scheme = scheme_dir.name
-            schemes_paths[scheme] = scheme_dir
+            schemes_paths[scheme_name] = scheme_dir
 
-    for scheme, path in schemes_paths.items():
+    for scheme_name, path in schemes_paths.items():
         validate(scheme_dir=path, full=full, force=force)
 
 
@@ -356,13 +359,13 @@ def build(
     scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
     scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
     with open(out_dir / "info.yml", "w") as scheme_fh:
-        logging.info(f"Writing info.yml to {out_dir}/info.yml")
+        logger.info(f"Writing info.yml to {out_dir}/info.yml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
-    logging.info(f"Copying primer.bed to {out_dir}/primer.bed")
+    logger.info(f"Copying primer.bed to {out_dir}/primer.bed")
     shutil.copy(scheme_dir / "primer.bed", out_dir)
-    logging.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
+    logger.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
     shutil.copy(scheme_dir / "reference.fasta", out_dir)
-    logging.info(f"Writing scheme.bed to {out_dir}/scheme.bed")
+    logger.info(f"Writing scheme.bed to {out_dir}/scheme.bed")
     convert_primer_bed_to_scheme_bed(bed_path=out_dir / "primer.bed")
     shutil.copy("scheme.bed", out_dir.resolve())
     os.remove("scheme.bed")
@@ -425,14 +428,14 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
                     "repository": definition_url,
                 }
             )
-            logging.info(f"Reading {name}")
+            logger.info(f"Reading {name}")
         family_data["versions"] = versions_data
         families_data.append(family_data)
     manifest["schemes"] = families_data
 
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:
-        logging.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
+        logger.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
         yaml.dump(data=manifest, stream=fh, sort_keys=False)
     validate_yaml_with_json_schema(
         yaml_path=out_dir / manifest_file_name, schema_path=manifest_schema_path
@@ -562,4 +565,4 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
         row=alt.Row("chrom:O", header=alt.Header(labelOrient="top"), title="")
     )
     combined_chart.interactive().save(str(out_path))
-    logging.info(f"Plot saved ({out_path})")
+    logger.info(f"Plot saved ({out_path})")
