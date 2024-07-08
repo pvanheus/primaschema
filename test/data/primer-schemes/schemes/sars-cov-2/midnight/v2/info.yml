@@ -12,8 +12,8 @@ developers:
 vendors:
 - organisation_name: Oxford Nanopore Technologies
   kit_name: MRT001.20
-amplicon_length: 1200
-repository_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/midnight/v2
+amplicon_size: 1200
+definition_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/midnight/v2
 citations:
 - https://dx.doi.org/10.17504/protocols.io.bwyppfvn
 notes:

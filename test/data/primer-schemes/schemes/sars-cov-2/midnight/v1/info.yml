@@ -12,8 +12,8 @@ vendors:
 - organisation_name: Oxford Nanopore Technologies
   kit_name: MRT001.10
 - organisation_name: Integrated DNA Technologies
-amplicon_length: 1200
-repository_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/midnight/v1
+amplicon_size: 1200
+definition_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/midnight/v1
 citations:
 - https://dx.doi.org/10.17504/protocols.io.bwyppfvn
 license: CC-BY-4.0

@@ -411,7 +411,7 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
         family_example_name = families_names[family][0]
         family_data["organism"] = names_schemes[family_example_name]["organism"]
         versions_data = []
-        repository_url = names_schemes[name].get("repository_url", "")
+        definition_url = names_schemes[name].get("definition_url", "")
         for name in sorted(names):
             if names_schemes[name].get("display_name"):
                 display_name = names_schemes[name]["display_name"]
@@ -422,7 +422,7 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
                     "name": name,
                     "display_name": display_name,
                     "version": name.partition("-")[2],
-                    "repository": repository_url,
+                    "repository": definition_url,
                 }
             )
             logging.info(f"Reading {name}")

@@ -29,14 +29,14 @@ classes:
       - derived_from
       - developers
       - vendors
-      - amplicon_length
+      - amplicon_size
       - notes
       - citations
       - license
       - source_url
       - primer_checksum
       - reference_checksum
-      - repository_url
+      - definition_url
 
   Vendor:
     class_uri: GENEPIO:0100674
@@ -84,12 +84,12 @@ slots:
     multivalued: true
     inlined_as_list: true 
     range: Vendor
-  amplicon_length:
+  amplicon_size:
     slot_uri: GENEPIO:0001449
     description: "The length (in base pairs) of an amplicon in the primer scheme"
     range: integer
     minimum_value: 1
-  repository_url:
+  definition_url:
     slot_uri: GENEPIO:0100683
     description: "GitHub URL of PHA4GE compatible primer scheme scheme definition"
   source_url:
