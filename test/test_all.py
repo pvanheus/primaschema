@@ -188,3 +188,15 @@ def test_print_intervals():
 def test_plot_single_chrom_ref():
     lib.plot(data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed")
     run("rm -rf plot.html", cwd="./")
+
+
+def test_6to7_many_ref_chroms():
+    scheme_bed_path = data_dir / "many-ref-chroms/scheme.bed"
+    primer_bed_path = data_dir / "many-ref-chroms/primer.bed"
+    reference_path = data_dir / "many-ref-chroms/reference.fasta"
+    bed_str = lib.convert_scheme_bed_to_primer_bed(
+        bed_path=scheme_bed_path, fasta_path=reference_path
+    )
+    with open(primer_bed_path) as fh:
+        expected_bed_str = fh.read()
+    assert bed_str == expected_bed_str
