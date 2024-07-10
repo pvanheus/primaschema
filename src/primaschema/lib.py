@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import io
 import json
 import logging
 import os
@@ -162,25 +163,32 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
     return hash_primer_bed_df(bed7_df)
 
 
-def convert_primer_bed_to_scheme_bed(bed_path: Path, out_dir: Path = Path()):
+def convert_primer_bed_to_scheme_bed(bed_path: Path):
     df = parse_primer_bed(bed_path).drop("sequence", axis=1)
-    df.to_csv(Path(out_dir) / "scheme.bed", sep="\t", header=False, index=False)
+    with io.StringIO() as csv_buffer:
+        df.to_csv(csv_buffer, sep="\t", header=False, index=False)
+        bed_str = csv_buffer.getvalue()
+    return bed_str
 
 
-def convert_scheme_bed_to_primer_bed(
-    bed_path: Path, fasta_path: Path, out_dir: Path = Path()
-):
-    ref_record = SeqIO.read(fasta_path, "fasta")
+def convert_scheme_bed_to_primer_bed(bed_path: Path, fasta_path: Path) -> str:
+    ids_seqs = SeqIO.to_dict(SeqIO.parse(fasta_path, "fasta"))
     df = parse_scheme_bed(bed_path)
     records = df.to_dict("records")
     for r in records:
+        chrom = r["chrom"].partition(" ")[0]  # Use chrom name before first space
         start_pos, end_pos = r["chromStart"], r["chromEnd"]
         if r["strand"] == "+":
-            r["sequence"] = str(ref_record.seq[start_pos:end_pos])
+            r["sequence"] = str(ids_seqs[chrom].seq[start_pos:end_pos])
         else:
-            r["sequence"] = str(ref_record.seq[start_pos:end_pos].reverse_complement())
+            r["sequence"] = str(
+                ids_seqs[chrom].seq[start_pos:end_pos].reverse_complement()
+            )
     df = pd.DataFrame(records)
-    df.to_csv(Path(out_dir) / "primer.bed", sep="\t", header=False, index=False)
+    with io.StringIO() as csv_buffer:
+        df.to_csv(csv_buffer, sep="\t", header=False, index=False)
+        bed_str = csv_buffer.getvalue()
+    return bed_str
 
 
 def hash_bed(bed_path: Path) -> str:
@@ -366,7 +374,9 @@ def build(
     logger.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
     shutil.copy(scheme_dir / "reference.fasta", out_dir)
     logger.info(f"Writing scheme.bed to {out_dir}/scheme.bed")
-    convert_primer_bed_to_scheme_bed(bed_path=out_dir / "primer.bed")
+    scheme_bed_str = convert_primer_bed_to_scheme_bed(bed_path=out_dir / "primer.bed")
+    with open("scheme.bed", "w") as fh:
+        fh.write(scheme_bed_str)
     shutil.copy("scheme.bed", out_dir.resolve())
     os.remove("scheme.bed")
 
@@ -460,15 +470,15 @@ def show_non_ref_alts(scheme_dir: Path):
         convert_scheme_bed_to_primer_bed(
             bed_path=scheme_dir / "scheme.bed",
             fasta_path=scheme_dir / "reference.fasta",
-            out_dir=temp_dir,
         )
         return diff(bed1_path=bed_path, bed2_path=Path(temp_dir) / "primer.bed")
 
 
 def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
-    # find primer positions for all primers in the bed file and compute maximum
-    # interval between primers of the same name
-
+    """
+    find primer positions for all primers in the bed file and compute maximum
+    interval between primers of the same name
+    """
     primer_name_re = re.compile(r"^(?P<name>.*)_(LEFT|RIGHT)(_.+)?$")
     eden_primer_name_re = re.compile(r"^(?P<name>.*_[AB][0-9])(F|R)_\d+$")
     all_intervals: dict[str, dict[str, (int, int)]] = {}

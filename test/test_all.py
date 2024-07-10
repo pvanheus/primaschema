@@ -129,21 +129,34 @@ def test_build_manifest():
 
 
 def test_primer_bed_to_scheme_bed():
-    lib.convert_primer_bed_to_scheme_bed(
-        bed_path=data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
+    scheme_bed_path = (
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed"
     )
-    lib.parse_scheme_bed("scheme.bed")
-    run("rm -rf scheme.bed", cwd="./")
+    primer_bed_path = (
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
+    )
+    bed_str = lib.convert_primer_bed_to_scheme_bed(bed_path=primer_bed_path)
+    with open(scheme_bed_path) as fh:
+        expected_bed_str = fh.read()
+    assert bed_str == expected_bed_str
 
 
 def test_scheme_bed_to_primer_bed():
-    lib.convert_scheme_bed_to_primer_bed(
-        bed_path=data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed",
-        fasta_path=data_dir
-        / "primer-schemes/schemes/sars-cov-2/artic/v4.1/reference.fasta",
+    scheme_bed_path = (
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed"
     )
-    lib.parse_primer_bed("primer.bed")
-    run("rm -rf primer.bed", cwd="./")
+    primer_bed_path = (
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
+    )
+    reference_path = (
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/reference.fasta"
+    )
+    bed_str = lib.convert_scheme_bed_to_primer_bed(
+        bed_path=scheme_bed_path, fasta_path=reference_path
+    )
+    with open(primer_bed_path) as fh:
+        expected_bed_str = fh.read()
+    assert bed_str == expected_bed_str
 
 
 def test_diff():

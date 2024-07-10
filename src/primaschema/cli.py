@@ -90,27 +90,27 @@ def build_manifest(root_dir: Path, schema_dir: Path = Path(), out_dir: Path = Pa
     lib.build_manifest(root_dir=root_dir, schema_dir=schema_dir, out_dir=out_dir)
 
 
-def seven_to_six(bed_path: Path, out_dir: Path = Path()):
+def seven_to_six(bed_path: Path):
     """
     Convert a 7 column primer.bed file to a 6 column scheme.bed file by droppign a column
 
     :arg bed_path: path of primer.bed file
-    :arg out_dir: path of directory in which to save primer.bed
     """
-    lib.convert_primer_bed_to_scheme_bed(bed_path=bed_path, out_dir=out_dir)
+    bed_str = lib.convert_primer_bed_to_scheme_bed(bed_path=bed_path)
+    print(bed_str)
 
 
-def six_to_seven(bed_path: Path, fasta_path: Path, out_dir: Path = Path()):
+def six_to_seven(bed_path: Path, fasta_path: Path):
     """
     Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
 
     :arg bed_path: path of scheme.bed file
     :arg fasta_path: path of reference sequence
-    :arg out_dir: path of directory in which to save primer.bed
     """
-    lib.convert_scheme_bed_to_primer_bed(
-        bed_path=bed_path, fasta_path=fasta_path, out_dir=out_dir
+    bed_str = lib.convert_scheme_bed_to_primer_bed(
+        bed_path=bed_path, fasta_path=fasta_path
     )
+    print(bed_str)
 
 
 def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
