@@ -185,8 +185,13 @@ def test_print_intervals():
     assert """MN908947.3\t29452\t29854\tSARS-CoV-2_99\n""" in run_cmd.stdout
 
 
-def test_plot_single_chrom_ref():
+def test_plot_single_ref_chrom_ref():
     lib.plot(data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed")
+    run("rm -rf plot.html", cwd="./")
+
+
+def test_plot_many_ref_chroms_ref():
+    lib.plot(data_dir / "many-ref-chroms/primer.bed")
     run("rm -rf plot.html", cwd="./")
 
 
