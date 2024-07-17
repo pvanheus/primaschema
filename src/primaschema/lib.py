@@ -509,7 +509,9 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
     return all_intervals
 
 
-def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
+def plot(
+    bed_path: Path, amplicon_name_index: int = 1, out_path: Path = Path("plot.html")
+) -> None:
     """
     Plot amplicon and primer positions from a 7 column primer.bed file
     Requires primers to be named {scheme-name}_{amplicon-number}…
@@ -517,7 +519,7 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     Supported out_path extensions: html (interactive), pdf, png, svg
     """
     bed_df = parse_primer_bed(bed_path)
-    bed_df["amplicon"] = bed_df["name"].str.split("_").str[1]
+    bed_df["amplicon"] = bed_df["name"].str.split("_").str[amplicon_name_index]
     logging.debug(pd.concat([bed_df.head(4), bed_df.tail(4)]))
     amp_df = (
         bed_df.groupby(["chrom", "amplicon"])
@@ -571,7 +573,6 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
         )
     )
     combined_chart = alt.layer(primer_marks, amplicon_marks).facet(
-        # row="chrom:O"
         row=alt.Row("chrom:O", header=alt.Header(labelOrient="top"), title="")
     )
     combined_chart.interactive().save(str(out_path))

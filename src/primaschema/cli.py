@@ -150,15 +150,19 @@ def print_intervals(bed_path: Path):
             print(f"{chrom}\t{interval[0]}\t{interval[1]}\t{name}")
 
 
-def plot(bed_path: Path, out_path: Path = Path("plot.html")):
+def plot(
+    bed_path: Path, amplicon_name_index: int = 1, out_path: Path = Path("plot.html")
+):
     """
     Plot amplicon and primer coords from 7 column primer.bed
 
-
     :arg bed_path: path of primer.bed file
+    :arg amplicon_name_index: underscore delimited index of amplicon name in BED column 4
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
     """
-    lib.plot(bed_path=bed_path, out_path=out_path)
+    lib.plot(
+        bed_path=bed_path, amplicon_name_index=amplicon_name_index, out_path=out_path
+    )
 
 
 def main():

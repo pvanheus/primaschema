@@ -181,12 +181,14 @@ def test_print_intervals():
     run_cmd = run(
         "primaschema intervals primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
     )
-
     assert """MN908947.3\t29452\t29854\tSARS-CoV-2_99\n""" in run_cmd.stdout
 
 
 def test_plot_single_ref_chrom_ref():
-    lib.plot(data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed")
+    lib.plot(
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed",
+        amplicon_name_index=1,
+    )
     run("rm -rf plot.html", cwd="./")
 
 
