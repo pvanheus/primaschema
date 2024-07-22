@@ -321,7 +321,9 @@ def validate(scheme_dir: Path, full: bool = False, force: bool = False):
         logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
-    logger.info(f"Validation successful for {scheme.get('name')} ")
+    logger.info(
+        f"Validation successful for {scheme.get('name')} {scheme.get('version')}"
+    )
 
 
 def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
@@ -340,7 +342,7 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
 
 def build(
     scheme_dir: Path,
-    out_dir: Path = Path(),
+    out_dir: Path = Path("built"),
     full: bool = False,
     force: bool = False,
     nested: bool = True,
@@ -354,11 +356,16 @@ def build(
     validate(scheme_dir=scheme_dir, full=full, force=force)
     scheme = parse_yaml(scheme_dir / "info.yml")
     if nested:
-        family = Path(scheme["name"].partition("-")[0])
-        version = Path(scheme["name"].partition("-")[2])
-        out_dir = Path("built") / scheme["organism"] / family / version
+        organism = Path(
+            str(scheme.get("organism", ""))
+        )  # Default catch all organism dir?
+        name = Path(str(scheme["name"]))
+        amplicon_size = Path(str(scheme.get("amplicon_size", "")))  # Skip if absent
+        version = Path(str(scheme["version"]))
+        out_dir = Path(out_dir) / organism / name / amplicon_size / version
+
     else:
-        out_dir = Path("built") / scheme["name"]
+        out_dir = Path(out_dir) / scheme["name"]
     try:
         out_dir.mkdir(parents=True, exist_ok=force)
     except FileExistsError:
@@ -395,14 +402,16 @@ def build_recursive(
 
 
 def scheme_key(scheme: dict) -> str:
-    family = scheme.get("family", "")
-    version = scheme.get("version", "")
-    return '/'.join([scheme['organism'], family, scheme['name'], version])
+    organism = str(scheme.get("organism", ""))
+    name = str(scheme["name"])
+    amplicon_size = str(scheme.get("amplicon_size", ""))
+    version = str(scheme["version"])
+    return "/".join([organism, name, amplicon_size, version])
 
 
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
-    
+
     manifest = parse_yaml(header_path)
 
     manifest_field_exclude = [
@@ -421,11 +430,12 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
             if field in scheme:
                 del scheme[field]
         if scheme["organism"] not in organism_set:
-            print(f"Warning: skipping scheme {scheme['name']} with unknown organism {scheme['organism']}", file=sys.stderr)
-            continue
+            logger.warning(
+                f"Skipping scheme {scheme['name']} with unknown organism {scheme['organism']}",
+            )
         schemes.append(scheme)
-        
-    manifest['schemes'] = sorted(schemes, key=scheme_key)
+
+    manifest["schemes"] = sorted(schemes, key=scheme_key)
 
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:

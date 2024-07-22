@@ -52,7 +52,10 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
 
 
 def build(
-    scheme_dir: Path, out_dir: Path = Path(), full: bool = False, force: bool = False
+    scheme_dir: Path,
+    out_dir: Path = Path("built"),
+    full: bool = False,
+    force: bool = False,
 ):
     """
     Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
@@ -74,7 +77,7 @@ def build_recursive(
     :arg root_dir: path in which to search for schemes
     :arg full: perform meticulous validation using full model
     :arg force: overwrite existing schemes and ignore hash check failures
-    :arg nested: build definitions inside a nested dir structure of family/version
+    :arg nested: build definitions dir structure of organism/scheme/amplicon_length/version
     """
     lib.build_recursive(root_dir=root_dir, full=full, force=force, nested=nested)
 
