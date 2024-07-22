@@ -18,6 +18,6 @@ definition_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/mi
 citations:
 - https://dx.doi.org/10.17504/protocols.io.bwyppfvn
 license: CC-BY-4.0
-primer_scheme_status: DEPRECATED
+status: DEPRECATED
 primer_checksum: primaschema:e1303ce0367cc245
 reference_checksum: primaschema:7d5621cd3b3e498d

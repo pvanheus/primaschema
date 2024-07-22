@@ -396,6 +396,19 @@ def build_recursive(
 
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
+    manifest_field_subset = [
+        "name",
+        "amplicon_size",
+        "version",
+        "organism",
+        "source_url",
+        "definition_url",
+        "aliases",
+        "developers",
+        "citations",
+        "derived_from",
+        "status",
+    ]
     organisms = parse_yaml(organisms_path)
     manifest = {
         "schema_version": "1.0.0-alpha",
@@ -409,7 +422,8 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
             scheme = parse_yaml(entry.path)
-            manifest["schemes"].append(scheme)
+            subset = {k: scheme[k] for k in manifest_field_subset if k in scheme}
+            manifest["schemes"].append(subset)
 
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:

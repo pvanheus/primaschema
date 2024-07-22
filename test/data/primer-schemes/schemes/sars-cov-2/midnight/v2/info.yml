@@ -22,6 +22,6 @@ notes:
 - https://twitter.com/freed_nikki/status/1464477522448433156
 - Not considered a new version by Freed et al. and IDT despite additional primer
 license: CC-BY-4.0
-primer_scheme_status: DEPRECATED
+status: DEPRECATED
 primer_checksum: primaschema:8f733a1f180c435a
 reference_checksum: primaschema:7d5621cd3b3e498d
