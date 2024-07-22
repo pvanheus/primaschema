@@ -1,6 +1,6 @@
 id: https://github.com/pha4ge/primer-schemes/schemas/primer-scheme
 name: primer-scheme
-description: Data model for tiling PCR primer scheme definitions
+description: Data model for tiling primer scheme definitions
 version: 1.0.0-alpha
 prefixes:
   linkml: https://w3id.org/linkml/
@@ -17,10 +17,11 @@ default_range: string
 classes:
   PrimerScheme:
     tree_root: true
-    description: "A description of an amplicon primer scheme"
+    description: "A tiled amplicon PCR primer scheme definition"
     slots:
       - schema_version
-      - name 
+      - name
+      - version
       - organism
       - organism_aliases
       - display_name
@@ -60,6 +61,9 @@ slots:
     identifier: true
     description: The canonical name of the primer scheme (lowercase)
     pattern: "^[\\da-z0-9_.-]+$"
+  version:
+    required: true
+    pattern: "^[\\da-z0-9_.-]+$"
   display_name:
     description: The human-friendly display name of the primer scheme
   organism:
@@ -82,7 +86,7 @@ slots:
   vendors:
     description: "Vendors where one can purchase the primers described in the amplicon scheme or a kit containing these primers"
     multivalued: true
-    inlined_as_list: true 
+    inlined_as_list: true
     range: Vendor
   amplicon_size:
     slot_uri: GENEPIO:0001449
@@ -115,7 +119,7 @@ slots:
   primer_checksum:
     slot_uri: GENEPIO:0100675
     description: "Checksum for the primer scheme BED file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema"
-  reference_checksum: 
+  reference_checksum:
     description: "Checksum for the reference FASTA file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema"
   derived_from:
     slot_uri: GENEPIO:0100671

@@ -1,5 +1,6 @@
 schema_version: 1.0.0-alpha
-name: artic-v4.1
+name: artic
+version: v4.1
 organism: sars-cov-2
 aliases:
 - ARTIC/V4.1

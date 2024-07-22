@@ -1,5 +1,6 @@
 schema_version: 1.0.0-alpha
-name: midnight-v1
+name: midnight
+version: v1
 organism: sars-cov-2
 aliases:
 - midnight-ont-v1

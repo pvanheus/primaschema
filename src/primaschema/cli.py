@@ -79,15 +79,14 @@ def build_recursive(
     lib.build_recursive(root_dir=root_dir, full=full, force=force, nested=nested)
 
 
-def build_manifest(root_dir: Path, schema_dir: Path = Path(), out_dir: Path = Path()):
+def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """
     Build a complete manifest of schemes contained in the specified directory
 
     :arg root_dir: path in which to search for schemes
-    :arg schema_dir: path of schema directory
     :arg out_dir: path of directory in which to save manifest
     """
-    lib.build_manifest(root_dir=root_dir, schema_dir=schema_dir, out_dir=out_dir)
+    lib.build_manifest(root_dir=root_dir, out_dir=out_dir)
 
 
 def seven_to_six(bed_path: Path):
