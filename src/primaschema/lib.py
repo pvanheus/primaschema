@@ -26,7 +26,7 @@ from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml.validators import JsonSchemaDataValidator
 
-from primaschema import primer_scheme_schema_path, organisms_path, manifest_schema_path
+from primaschema import primer_scheme_schema_path, header_path, manifest_schema_path
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -394,36 +394,31 @@ def build_recursive(
         build(scheme_dir=path, full=full, force=force)
 
 
+def scheme_key(scheme: dict) -> str:
+    family = scheme.get("family", "")
+    version = scheme.get("version", "")
+    return '/'.join([scheme['organism'], family, scheme['name'], version])
+
+
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
-    manifest_field_subset = [
-        "name",
-        "amplicon_size",
-        "version",
-        "organism",
-        "source_url",
-        "definition_url",
-        "aliases",
-        "developers",
-        "citations",
-        "derived_from",
-        "status",
-    ]
-    organisms = parse_yaml(organisms_path)
-    manifest = {
-        "schema_version": "1.0.0-alpha",
-        "metadata": "The manifest of PHA4GE tiled amplicon PCR primer scheme definitions",
-        "repository": "https://github.com/pha4ge/primer-schemes",
-        "license": "CC-BY-4.0",
-        "organisms": organisms,
-        "schemes": [],
-    }
+    
+    manifest = parse_yaml(header_path)
 
-    for entry in scan(root_dir):
-        if entry.is_file() and entry.name == "info.yml":
-            scheme = parse_yaml(entry.path)
-            subset = {k: scheme[k] for k in manifest_field_subset if k in scheme}
-            manifest["schemes"].append(subset)
+    scheme_path = root_dir / "schemes"
+    if not scheme_path.exists():
+        scheme_path = root_dir
+
+    schemes = []
+    organism_set = set([o["organism"] for o in manifest["organisms"]])
+    for scheme_info_path in scheme_path.glob("**/info.yml"):
+        scheme = parse_yaml(scheme_info_path)
+        if scheme["organism"] not in organism_set:
+            print(f"Warning: skipping scheme {scheme['name']} with unknown organism {scheme['organism']}", file=sys.stderr)
+            continue
+        schemes.append(scheme)
+        
+    manifest['schemes'] = sorted(schemes, key=scheme_key)
 
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:

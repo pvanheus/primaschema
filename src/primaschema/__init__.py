@@ -2,17 +2,18 @@
 
 import logging
 import logging.config
+import os
 
 from pathlib import Path
 
 
 __version__ = "0.2.0"
 
-pkg_dir = Path(__file__).resolve().parent.parent.parent
+pkg_dir = os.getenv('PRIMER_SCHEMES', Path(__file__).resolve().parent.parent.parent)
 schema_dir = pkg_dir / "schema"
 primer_scheme_schema_path = schema_dir / "primer-scheme_schema.yml"
 manifest_schema_path = schema_dir / "manifest_schema.json"
-organisms_path = schema_dir / "organisms.yml"
+header_path = schema_dir / "header.yml"
 # print(f"{pkg_dir=} {schema_dir=} {schema_path=}")
 
 logging_config = {
