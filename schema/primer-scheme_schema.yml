@@ -21,6 +21,7 @@ classes:
     slots:
       - schema_version
       - name
+      - amplicon_size
       - version
       - organism
       - organism_aliases
@@ -30,7 +31,6 @@ classes:
       - derived_from
       - developers
       - vendors
-      - amplicon_size
       - notes
       - citations
       - license
@@ -92,6 +92,7 @@ slots:
     slot_uri: GENEPIO:0001449
     description: "The length (in base pairs) of an amplicon in the primer scheme"
     range: integer
+    required: true
     minimum_value: 1
   definition_url:
     slot_uri: GENEPIO:0100683

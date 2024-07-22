@@ -1,5 +1,6 @@
 schema_version: 1.0.0-alpha
 name: eden
+amplicon_size: 2500
 version: v1
 organism: sars-cov-2
 aliases:
@@ -7,7 +8,6 @@ aliases:
 developers:
 - John-Sebastian Eden
 - Eby Sim
-amplicon_size: 2500
 definition_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/eden/v1
 citations:
 - https://www.protocols.io/view/sars-cov-2-genome-sequencing-using-long-pooled-amp-kxygxeob4v8j/v1
