@@ -1,6 +1,6 @@
 id: https://github.com/pha4ge/primer-schemes/schemas/primer-scheme
 name: primer-scheme
-description: Data model for tiling PCR primer scheme definitions
+description: Data model for tiling primer scheme definitions
 version: 1.0.0-alpha
 prefixes:
   linkml: https://w3id.org/linkml/
@@ -17,26 +17,25 @@ default_range: string
 classes:
   PrimerScheme:
     tree_root: true
-    description: "A description of an amplicon primer scheme"
+    description: "A tiled amplicon PCR primer scheme definition"
     slots:
       - schema_version
-      - name 
+      - name
+      - amplicon_size
+      - version
       - organism
-      - organism_aliases
-      - display_name
-      - primer_scheme_status
+      - source_url
+      - definition_url
       - aliases
+      - license
+      - status
       - derived_from
       - developers
-      - vendors
-      - amplicon_size
-      - notes
       - citations
-      - license
-      - source_url
+      - notes
+      - vendors
       - primer_checksum
       - reference_checksum
-      - definition_url
 
   Vendor:
     class_uri: GENEPIO:0100674
@@ -60,15 +59,15 @@ slots:
     identifier: true
     description: The canonical name of the primer scheme (lowercase)
     pattern: "^[\\da-z0-9_.-]+$"
+  version:
+    required: true
+    pattern: "^[\\da-z0-9_.-]+$"
   display_name:
     description: The human-friendly display name of the primer scheme
   organism:
     slot_uri: GENEPIO:0100682
     required: true
     description: The organism against which this primer scheme is targeted. Lowercase, e.g. sars-cov-2
-  organism_aliases:
-    description: "Aliases for the organism that this primer scheme targets"
-    multivalued: true
   aliases:
     slot_uri: GENEPIO:0100670
     description: Aliases for primer scheme name
@@ -82,12 +81,13 @@ slots:
   vendors:
     description: "Vendors where one can purchase the primers described in the amplicon scheme or a kit containing these primers"
     multivalued: true
-    inlined_as_list: true 
+    inlined_as_list: true
     range: Vendor
   amplicon_size:
     slot_uri: GENEPIO:0001449
     description: "The length (in base pairs) of an amplicon in the primer scheme"
     range: integer
+    required: true
     minimum_value: 1
   definition_url:
     slot_uri: GENEPIO:0100683
@@ -100,10 +100,10 @@ slots:
     multivalued: true
     inlined_as_list: true
     range: string
-  primer_scheme_status:
+  status:
     slot_uri: GENEPIO:0100681
     description: "The status of this primer scheme (e.g. published, deprecated)"
-    range: PrimerSchemeStatus
+    range: SchemeStatus
     ifabsent: string(PUBLISHED)
   license:
     description: "License under which the primer scheme is distributed"
@@ -115,7 +115,7 @@ slots:
   primer_checksum:
     slot_uri: GENEPIO:0100675
     description: "Checksum for the primer scheme BED file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema"
-  reference_checksum: 
+  reference_checksum:
     description: "Checksum for the reference FASTA file, in format checksum_type:checksum, where checksum_type is lowercase name of checksum generator e.g. primaschema"
   derived_from:
     slot_uri: GENEPIO:0100671
@@ -133,7 +133,7 @@ slots:
     description: "A link to the home page of an organisation"
 
 enums:
-  PrimerSchemeStatus:
+  SchemeStatus:
     description: "Status of this amplicon primer scheme"
     permissible_values:
       PUBLISHED:

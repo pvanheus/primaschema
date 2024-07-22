@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import sys
-from collections import defaultdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Literal
@@ -397,51 +396,34 @@ def build_recursive(
 
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
+    manifest_field_subset = [
+        "name",
+        "amplicon_size",
+        "version",
+        "organism",
+        "source_url",
+        "definition_url",
+        "aliases",
+        "developers",
+        "citations",
+        "derived_from",
+        "status",
+    ]
     organisms = parse_yaml(organisms_path)
     manifest = {
-        "schema_version": "0.9.0",
-        "metadata": "The PHA4GE list of tiling amplicon primer schemes",
+        "schema_version": "1.0.0-alpha",
+        "metadata": "The manifest of PHA4GE tiled amplicon PCR primer scheme definitions",
         "repository": "https://github.com/pha4ge/primer-schemes",
-        "latest_doi": "",
         "license": "CC-BY-4.0",
         "organisms": organisms,
+        "schemes": [],
     }
 
-    names_schemes = {}
-    families_names = defaultdict(list)
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
             scheme = parse_yaml(entry.path)
-            name = scheme["name"]
-            names_schemes[name] = scheme
-            family, _, version = scheme["name"].partition("-")
-            families_names[family].append(name)
-
-    families_data = []
-    for family, names in sorted(families_names.items()):
-        family_data = {}
-        family_data["family"] = family
-        family_example_name = families_names[family][0]
-        family_data["organism"] = names_schemes[family_example_name]["organism"]
-        versions_data = []
-        definition_url = names_schemes[name].get("definition_url", "")
-        for name in sorted(names):
-            if names_schemes[name].get("display_name"):
-                display_name = names_schemes[name]["display_name"]
-            else:
-                display_name = name
-            versions_data.append(
-                {
-                    "name": name,
-                    "display_name": display_name,
-                    "version": name.partition("-")[2],
-                    "repository": definition_url,
-                }
-            )
-            logger.info(f"Reading {name}")
-        family_data["versions"] = versions_data
-        families_data.append(family_data)
-    manifest["schemes"] = families_data
+            subset = {k: scheme[k] for k in manifest_field_subset if k in scheme}
+            manifest["schemes"].append(subset)
 
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:

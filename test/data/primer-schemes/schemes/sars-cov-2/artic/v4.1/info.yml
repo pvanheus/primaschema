@@ -1,5 +1,7 @@
 schema_version: 1.0.0-alpha
-name: artic-v4.1
+name: artic
+amplicon_size: 400
+version: v4.1
 organism: sars-cov-2
 aliases:
 - ARTIC/V4.1
@@ -10,7 +12,6 @@ vendors:
   kit_name: '10011442'
 - organisation_name: Eurofins
   home_page: https://eurofinsgenomics.com
-amplicon_size: 400
 definition_url: https://github.com/pha4ge/primer-schemes/tree/main/sars-cov-2/artic/v4.1
 source_url: https://github.com/quick-lab/primerschemes/tree/main/primerschemes/artic-sars-cov-2/400/v4.1.0
 citations:

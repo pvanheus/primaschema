@@ -1,12 +1,12 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://github.com/pha4ge/primaschema/tree/main/schemas/mainfest_schema.json",
-    "title": "Primer Schemes Manifest",
-    "description": "A Manifest of Primer Schemes",
+    "title": "PHA4GE primer schemes manifest",
+    "description": "A manifest of tiled amplicon PCR primer scheme definitions",
     "type": "object",
     "properties": {
         "schema_version": {
-            "description": "The schema version of this manifest. Currently 2-0-0",
+            "description": "The schema version of this manifest. Currently 1-0-0",
             "type": "string"
         },
         "metadata": {
@@ -15,10 +15,6 @@
         },
         "repository": {
             "description": "A URI describing the location of the live, updatable version of the schema",
-            "type": "string"
-        },
-        "latest_doi": {
-            "description": "The Digital Object Identifier of the latest version of the manifest",
             "type": "string"
         },
         "license": {
@@ -59,10 +55,6 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "family": {
-                        "description": "The name of the scheme excluding the version",
-                        "type": "string"
-                    },
                     "aliases": {
                         "description": "Aliases for the scheme name",
                         "type": "array",
@@ -80,33 +72,10 @@
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "versions": {
-                        "type": "array",
-                        "uniqueItems": true,
-                        "minItems": 1,
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "version": {
-                                    "type": "string"
-                                },
-                                "repository": {
-                                    "description": "Link to the directory containing the scheme. This directory should follow the PHA4GE standard for schemes",
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "version",
-                                "repository"
-                            ]
-                        }
                     }
                 },
                 "required": [
-                    "family",
-                    "organism",
-                    "versions"
+                    "organism"
                 ]
             }
         }
@@ -115,7 +84,6 @@
     "required": [
         "metadata",
         "repository",
-        "latest_doi",
         "license",
         "schemes"
     ]
