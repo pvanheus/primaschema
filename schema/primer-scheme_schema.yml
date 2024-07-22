@@ -100,10 +100,10 @@ slots:
     multivalued: true
     inlined_as_list: true
     range: string
-  primer_scheme_status:
+  status:
     slot_uri: GENEPIO:0100681
     description: "The status of this primer scheme (e.g. published, deprecated)"
-    range: PrimerSchemeStatus
+    range: SchemeStatus
     ifabsent: string(PUBLISHED)
   license:
     description: "License under which the primer scheme is distributed"
@@ -133,7 +133,7 @@ slots:
     description: "A link to the home page of an organisation"
 
 enums:
-  PrimerSchemeStatus:
+  SchemeStatus:
     description: "Status of this amplicon primer scheme"
     permissible_values:
       PUBLISHED:
