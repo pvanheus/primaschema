@@ -405,6 +405,10 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
     
     manifest = parse_yaml(header_path)
 
+    manifest_field_exclude = [
+        "schema_version",
+    ]
+
     scheme_path = root_dir / "schemes"
     if not scheme_path.exists():
         scheme_path = root_dir
@@ -413,6 +417,9 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
     organism_set = set([o["organism"] for o in manifest["organisms"]])
     for scheme_info_path in scheme_path.glob("**/info.yml"):
         scheme = parse_yaml(scheme_info_path)
+        for field in manifest_field_exclude:
+            if field in scheme:
+                del scheme[field]
         if scheme["organism"] not in organism_set:
             print(f"Warning: skipping scheme {scheme['name']} with unknown organism {scheme['organism']}", file=sys.stderr)
             continue
