@@ -11,9 +11,9 @@ __version__ = "0.2.0"
 
 pkg_dir = Path(__file__).resolve().parent.parent.parent
 schema_dir = Path(os.environ.get("PRIMER_SCHEMES_PATH", pkg_dir / "schema"))
-primer_scheme_schema_path = schema_dir / "primer-scheme_schema.yml"
-manifest_schema_path = schema_dir / "manifest_schema.json"
-header_path = schema_dir / "header.yml"
+primer_scheme_schema_path = schema_dir / "primer-scheme-schema.yml"
+manifest_schema_path = schema_dir / "manifest-schema.json"
+header_path = schema_dir / "manifest-header.yml"
 # print(f"{pkg_dir=} {schema_dir=} {schema_path=}")
 
 logging_config = {
