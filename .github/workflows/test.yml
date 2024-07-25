@@ -18,5 +18,7 @@ jobs:
         run: |
           python -m pip install '.[dev]'
       - name: Test with pytest
+        env:
+          PRIMER_SCHEMES_PATH: ${{ github.workspace }}
         run: |
           pytest

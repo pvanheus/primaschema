@@ -9,12 +9,11 @@ from pathlib import Path
 
 __version__ = "0.2.0"
 
-pkg_dir = Path(__file__).resolve().parent.parent.parent
-schema_dir = Path(os.environ.get("PRIMER_SCHEMES_PATH", pkg_dir / "schema"))
+pkg_dir = Path(os.environ.get("PRIMER_SCHEMES_PATH", Path(__file__).absolute().parent.parent.parent))
+schema_dir = pkg_dir / "schema"
 primer_scheme_schema_path = schema_dir / "primer-scheme-schema.yml"
 manifest_schema_path = schema_dir / "manifest-schema.json"
 header_path = schema_dir / "manifest-header.yml"
-# print(f"{pkg_dir=} {schema_dir=} {schema_path=}")
 
 logging_config = {
     "version": 1,
@@ -28,21 +27,24 @@ logging_config = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "default",
-            "level": "INFO",  # Set level to INFO
+            "level": "INFO",
             "stream": "ext://sys.stderr",
         },
     },
     "root": {
         "handlers": ["console"],
-        "level": "INFO",  # Set level to INFO
+        "level": "INFO",
     },
     "loggers": {
         "primaschema": {
             "handlers": ["console"],
-            "level": "INFO",  # Set level to INFO
+            "level": "INFO",
             "propagate": False,
         },
     },
 }
 
 logging.config.dictConfig(logging_config)
+logger = logging.getLogger("primaschema")
+
+logger.info(f"{pkg_dir=} {schema_dir=}")

@@ -509,12 +509,11 @@ def plot(
     """
     Plot amplicon and primer positions from a 7 column primer.bed file
     Requires primers to be named {scheme-name}_{amplicon-number}…
-    Plots one row per reference chromosome
+    Plots one vertical panel per reference chromosome
     Supported out_path extensions: html (interactive), pdf, png, svg
     """
     bed_df = parse_primer_bed(bed_path)
     bed_df["amplicon"] = bed_df["name"].str.split("_").str[amplicon_name_index]
-    logging.debug(pd.concat([bed_df.head(4), bed_df.tail(4)]))
     amp_df = (
         bed_df.groupby(["chrom", "amplicon"])
         .agg(min_start=("chromStart", "min"), max_end=("chromEnd", "max"))
@@ -522,11 +521,8 @@ def plot(
     )
     amp_df["is_amplicon"] = True
     sorted_amplicons = natsorted(bed_df["amplicon"].unique())
-    logging.debug(amp_df)
-
     bed_df["is_amplicon"] = False
     amp_df = amp_df.rename(columns={"min_start": "chromStart", "max_end": "chromEnd"})
-
     combined_df = pd.concat([bed_df, amp_df], ignore_index=True)
 
     primer_marks = (
