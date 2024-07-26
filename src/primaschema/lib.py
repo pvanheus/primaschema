@@ -26,7 +26,7 @@ from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml.validators import JsonSchemaDataValidator
 
-from primaschema import primer_scheme_schema_path, header_path, manifest_schema_path
+from . import primer_scheme_schema_path, header_path, manifest_schema_path
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]

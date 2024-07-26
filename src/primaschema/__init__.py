@@ -10,7 +10,7 @@ from pathlib import Path
 __version__ = "0.2.0"
 
 pkg_dir = Path(os.environ.get("PRIMER_SCHEMES_PATH", Path(__file__).absolute().parent.parent.parent))
-schema_dir = pkg_dir / "schema"
+schema_dir = pkg_dir / "test" / "data" / "primer-schemes" / "schema"
 primer_scheme_schema_path = schema_dir / "primer-scheme-schema.yml"
 manifest_schema_path = schema_dir / "manifest-schema.json"
 header_path = schema_dir / "manifest-header.yml"

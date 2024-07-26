@@ -6,7 +6,6 @@ import pytest
 
 import primaschema.lib as lib
 
-from primaschema import primer_scheme_schema_path
 
 data_dir = Path("test/data")
 
@@ -62,25 +61,22 @@ def test_artic_v41_scheme_hash_matches_primer_hash():
     assert scheme_bed_hash == primer_bed_hash
 
 
-def test_eden_v1_schema_full():
-    lib.validate_with_linkml_schema(
-        data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1/info.yml",
-        schema_path=primer_scheme_schema_path,
+def test_validate_eden_v1_full():
+    lib.validate(
+        data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1",
         full=True,
     )
 
 
-def test_eden_v1_schema():
-    lib.validate_with_linkml_schema(
-        data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1/info.yml",
-        schema_path=primer_scheme_schema_path,
+def test_validate_eden_v1():
+    lib.validate(
+        data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1",
     )
 
 
-def test_artic_v41_schema():
-    lib.validate_with_linkml_schema(
-        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/info.yml",
-        schema_path=primer_scheme_schema_path,
+def test_validate_artic_v41():
+    lib.validate(
+        data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1",
     )
 
 
@@ -88,10 +84,6 @@ def test_checksum_case_normalisation():
     assert lib.hash_bed(
         data_dir / "broken/different-case/eden-v1.primer.bed"
     ) == lib.hash_bed(data_dir / "broken/different-case/eden-v1-modified.primer.bed")
-
-
-def test_validate_artic_v41():
-    lib.validate(data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1")
 
 
 def test_validate_fail_five_columns():
@@ -108,14 +100,9 @@ def test_hash_bed():
     lib.hash_bed(data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed")
 
 
-def test_build_from_primer_bed():
+def test_build():
     run("primaschema build primer-schemes/schemes/sars-cov-2/artic/v4.1 --force")
     run("rm -rf artic-v4.1")
-
-
-def test_build_from_scheme_bed():
-    run("primaschema build primer-schemes/schemes/sars-cov-2/eden/v1 --force")
-    run("rm -rf eden-v1")
 
 
 def test_build_recursive():
