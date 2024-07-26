@@ -17,7 +17,6 @@ import yaml
 import altair as alt
 import pandas as pd
 
-from natsort import natsorted
 from Bio import SeqIO
 
 
@@ -503,24 +502,23 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
     return all_intervals
 
 
-def plot(
-    bed_path: Path, amplicon_name_index: int = 1, out_path: Path = Path("plot.html")
-) -> None:
+def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     """
     Plot amplicon and primer positions from a 7 column primer.bed file
-    Requires primers to be named {scheme-name}_{amplicon-number}…
-    Plots one vertical panel per reference chromosome
+    Requires primers to be named {$scheme_id}_{$amplicon_id}_{LEFT|RIGHT}_{1|2|3…}
+    Plots one vertical panel per pool per reference chromosome
     Supported out_path extensions: html (interactive), pdf, png, svg
     """
     bed_df = parse_primer_bed(bed_path)
-    bed_df["amplicon"] = bed_df["name"].str.split("_").str[amplicon_name_index]
+    bed_df["amplicon"] = bed_df["name"].str.split("_").str[1]
+    bed_df["poolName"] = bed_df["poolName"].astype(str)
+
     amp_df = (
-        bed_df.groupby(["chrom", "amplicon"])
+        bed_df.groupby(["chrom", "amplicon", "poolName"])
         .agg(min_start=("chromStart", "min"), max_end=("chromEnd", "max"))
         .reset_index()
     )
     amp_df["is_amplicon"] = True
-    sorted_amplicons = natsorted(bed_df["amplicon"].unique())
     bed_df["is_amplicon"] = False
     amp_df = amp_df.rename(columns={"min_start": "chromStart", "max_end": "chromEnd"})
     combined_df = pd.concat([bed_df, amp_df], ignore_index=True)
@@ -532,7 +530,7 @@ def plot(
         .encode(
             x=alt.X("chromStart:Q", title=None),
             x2="chromEnd:Q",
-            y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
+            y=alt.Y("poolName:O", title="pool", scale=alt.Scale(padding=1)),
             color=alt.Color("strand:N").scale(scheme="set2"),
             tooltip=[
                 alt.Tooltip("name:N", title="Primer name"),
@@ -541,17 +539,17 @@ def plot(
             ],
         )
         .properties(
-            width=1000,
+            width=800,
         )
     )
     amplicon_marks = (
         alt.Chart(combined_df)
         .transform_filter(alt.datum.is_amplicon == True)  # noqa
-        .mark_rule(size=2)
+        .mark_rule(strokeWidth=2)
         .encode(
             x=alt.X("chromStart:Q", title=None),
             x2="chromEnd:Q",
-            y=alt.Y("amplicon:O", sort=sorted_amplicons, scale=alt.Scale(padding=0)),
+            y=alt.Y("poolName:O", title="pool", scale=alt.Scale(padding=1)),
             tooltip=[
                 alt.Tooltip("amplicon:N", title="Amplicon name"),
                 alt.Tooltip("chromStart:Q", title="Min primer start"),
@@ -559,11 +557,14 @@ def plot(
             ],
         )
         .properties(
-            width=1000,
+            width=800,
         )
     )
-    combined_chart = alt.layer(primer_marks, amplicon_marks).facet(
-        row=alt.Row("chrom:O", header=alt.Header(labelOrient="top"), title="")
+    combined_chart = (
+        alt.layer(primer_marks, amplicon_marks)
+        .facet(row=alt.Row("chrom:O", header=alt.Header(labelOrient="top"), title=""))
+        .configure_axis(domain=False, ticks=False)
     )
+
     combined_chart.interactive().save(str(out_path))
     logger.info(f"Plot saved ({out_path})")

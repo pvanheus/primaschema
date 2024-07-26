@@ -174,7 +174,6 @@ def test_print_intervals():
 def test_plot_single_ref_chrom_ref():
     lib.plot(
         data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed",
-        amplicon_name_index=1,
     )
     run("rm -rf plot.html", cwd="./")
 

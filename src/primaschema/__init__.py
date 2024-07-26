@@ -7,9 +7,13 @@ import os
 from pathlib import Path
 
 
-__version__ = "0.2.0"
+__version__ = "1.0.0a0"
 
-pkg_dir = Path(os.environ.get("PRIMER_SCHEMES_PATH", Path(__file__).absolute().parent.parent.parent))
+pkg_dir = Path(
+    os.environ.get(
+        "PRIMER_SCHEMES_PATH", Path(__file__).absolute().parent.parent.parent
+    )
+)
 schema_dir = pkg_dir / "test" / "data" / "primer-schemes" / "schema"
 primer_scheme_schema_path = schema_dir / "primer-scheme-schema.yml"
 manifest_schema_path = schema_dir / "manifest-schema.json"
@@ -47,4 +51,4 @@ logging_config = {
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger("primaschema")
 
-logger.info(f"{pkg_dir=} {schema_dir=}")
+logger.debug(f"{pkg_dir=} {schema_dir=}")

@@ -1,8 +1,8 @@
 NC_038235.1 type_a	0	21	scheme-a_amp1_LEFT_1	1	+
 NC_038235.1 type_a	1213	1233	scheme-a_amp1_RIGHT_1	1	-
-NC_038235.1 type_a	1123	1144	scheme-a_amp2_LEFT_1	1	+
-NC_038235.1 type_a	2123	2143	scheme-a_amp2_RIGHT_1	1	-
-NC_001781.1 type_b	0	21	scheme-b_amp1_LEFT_1	2	+
-NC_001781.1 type_b	1213	1233	scheme-b_amp1_RIGHT_1	2	-
+NC_038235.1 type_a	1123	1144	scheme-a_amp2_LEFT_1	2	+
+NC_038235.1 type_a	2123	2143	scheme-a_amp2_RIGHT_1	2	-
+NC_001781.1 type_b	0	21	scheme-b_amp1_LEFT_1	1	+
+NC_001781.1 type_b	1213	1233	scheme-b_amp1_RIGHT_1	1	-
 NC_001781.1 type_b	1123	1144	scheme-b_amp2_LEFT_1	2	+
 NC_001781.1 type_b	2123	2143	scheme-b_amp2_RIGHT_1	2	-
