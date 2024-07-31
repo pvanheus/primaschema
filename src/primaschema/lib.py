@@ -7,9 +7,10 @@ import os
 import re
 import shutil
 import sys
+
+from collections import defaultdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Literal
 
 import jsonschema
 import yaml
@@ -19,20 +20,17 @@ import pandas as pd
 
 from Bio import SeqIO
 
-
 # from linkml.generators.pydanticgen import PydanticGenerator
 from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml.validators import JsonSchemaDataValidator
 
-from . import primer_scheme_schema_path, header_path, manifest_schema_path
+from . import models, header_path, logger, manifest_schema_path, primer_scheme_schema_path
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
 POSITION_FIELDS = ["chromStart", "chromEnd"]
-
-logger = logging.getLogger("primaschema")
 
 
 def scan(path):
@@ -250,13 +248,33 @@ def validate_with_linkml_schema(yaml_path: Path, schema_path: Path, full: bool =
 #         PrimerScheme(**data)  # Errors on validation failure
 
 
-def validate_primer_bed(bed_path: Path):
-    """Check that primer.bed appears to be in Primal Scheme v3 format"""
-    bed_columns = count_tsv_columns(bed_path)
-    if bed_columns != 7:
-        raise RuntimeError(
-            f"Primer bed files should have 7 columns: {PRIMER_BED_FIELDS}"
+def validate_primer_bed(bed_path: Path) -> models.BedModel:
+    """Check that primer.bed is a tiled PrimalScheme v3 BED"""
+    with open(bed_path) as fh:
+        bed_contents = fh.readlines()
+    primers = []
+    amplicons_primers = defaultdict(list)
+    for line in bed_contents:
+        r = line.split('\t')
+        primer = models.PrimerModel(
+            chrom=r[0],
+            chrom_start=int(r[1]),
+            chrom_end=int(r[2]),
+            name=r[3],
+            pool_name=int(r[4]),
+            strand=r[5],
+            sequence=r[6]
         )
+        chrom = primer.chrom
+        amplicon_number = int(primer.name_parts[1])
+        primers.append(primer)
+        amplicons_primers[(chrom, amplicon_number)].append(primer)
+
+    amplicons = defaultdict(list)
+    for (chrom, amplicon_number), primers in amplicons_primers.items():
+        amplicons[chrom].append(models.AmpliconModel(primers=primers))
+
+    return models.BedModel(amplicons=amplicons)
 
 
 def infer_bed_type(bed_path: Path) -> str:
@@ -273,11 +291,12 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    logger.info(f"Validating {scheme_dir}")
     validate_primer_bed(scheme_dir / "primer.bed")
+    logger.info(f"Validated {scheme_dir}/primer.bed")
     validate_with_linkml_schema(
         yaml_path=scheme_dir / "info.yml", schema_path=primer_scheme_schema_path
     )
+    logger.info(f"Validated {scheme_dir}/info.yml")
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")

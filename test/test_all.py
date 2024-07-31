@@ -40,14 +40,14 @@ def test_cli_hash_primer_bed():
     run_cmd = run(
         "primaschema hash-bed primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
     )
-    assert "primaschema:9005b441227985c8" in run_cmd.stdout
+    assert "primaschema:82a952e13cf2fcd9" in run_cmd.stdout
 
 
 def test_cli_scheme_bed():
     run_cmd = run(
         "primaschema hash-bed primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed"
     )
-    assert "primaschema:9005b441227985c8" in run_cmd.stdout
+    assert "primaschema:82a952e13cf2fcd9" in run_cmd.stdout
 
 
 def test_artic_v41_scheme_hash_matches_primer_hash():

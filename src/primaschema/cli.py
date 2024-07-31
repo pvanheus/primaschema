@@ -1,9 +1,22 @@
 import sys
+import logging
+
 from pathlib import Path
 
 import defopt
 
-from . import lib
+from . import lib, logger
+
+
+def configure_logging(debug: bool):
+    if debug:
+        logger.setLevel(logging.DEBUG)
+        for handler in logger.handlers:
+            handler.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+        for handler in logger.handlers:
+            handler.setLevel(logging.INFO)
 
 
 def hash_bed(bed_path: Path):
@@ -28,7 +41,7 @@ def hash_ref(ref_path: Path):
     print(hex_digest)
 
 
-def validate(scheme_dir: Path, full: bool = False):
+def validate(scheme_dir: Path, full: bool = False, debug: bool = False):
     """
     Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
 
@@ -36,7 +49,9 @@ def validate(scheme_dir: Path, full: bool = False):
     :arg out_dir: path of directory in which to save primer.bed
     :arg force: overwrite existing output files
     :arg full: perform meticulous validation using full model
+    :arg debug: show debug messages
     """
+    configure_logging(debug)
     return lib.validate(scheme_dir, full=full)
 
 
