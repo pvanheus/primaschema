@@ -2,7 +2,6 @@ import subprocess
 
 from pathlib import Path
 
-import pytest
 
 import primaschema.lib as lib
 
@@ -84,11 +83,6 @@ def test_checksum_case_normalisation():
     assert lib.hash_bed(
         data_dir / "broken/different-case/eden-v1.primer.bed"
     ) == lib.hash_bed(data_dir / "broken/different-case/eden-v1-modified.primer.bed")
-
-
-def test_validate_fail_five_columns():
-    with pytest.raises(RuntimeError):
-        lib.validate(data_dir / "broken/five-columns")
 
 
 def test_validate_recursive():

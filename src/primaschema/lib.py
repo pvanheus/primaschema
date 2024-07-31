@@ -25,7 +25,13 @@ from linkml.generators.pythongen import PythonGenerator
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml.validators import JsonSchemaDataValidator
 
-from . import models, header_path, logger, manifest_schema_path, primer_scheme_schema_path
+from . import (
+    models,
+    header_path,
+    logger,
+    manifest_schema_path,
+    primer_scheme_schema_path,
+)
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -255,7 +261,7 @@ def validate_primer_bed(bed_path: Path) -> models.BedModel:
     primers = []
     amplicons_primers = defaultdict(list)
     for line in bed_contents:
-        r = line.split('\t')
+        r = line.split("\t")
         primer = models.PrimerModel(
             chrom=r[0],
             chrom_start=int(r[1]),
@@ -263,7 +269,7 @@ def validate_primer_bed(bed_path: Path) -> models.BedModel:
             name=r[3],
             pool_name=int(r[4]),
             strand=r[5],
-            sequence=r[6]
+            sequence=r[6],
         )
         chrom = primer.chrom
         amplicon_number = int(primer.name_parts[1])
@@ -291,12 +297,12 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    validate_primer_bed(scheme_dir / "primer.bed")
-    logger.info(f"Validated {scheme_dir}/primer.bed")
     validate_with_linkml_schema(
         yaml_path=scheme_dir / "info.yml", schema_path=primer_scheme_schema_path
     )
     logger.info(f"Validated {scheme_dir}/info.yml")
+    validate_primer_bed(scheme_dir / "primer.bed")
+    logger.info(f"Validated {scheme_dir}/primer.bed")
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
