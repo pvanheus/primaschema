@@ -113,10 +113,10 @@ def parse_primer_bed(bed_path: Path) -> pd.DataFrame:
 
 def normalise_primer_bed_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    - Removes terminal whitespace
-    - Normalises case
-    - Sorts by chromStart, chromEnd, poolName, strand, sequence
-    - Removes duplicate records, collapsing alts with same coords if backfilled from ref
+    Removes terminal whitespace
+    Normalises case
+    Sorts by chromStart, chromEnd, poolName, strand, sequence
+    Removes duplicate records, collapsing alts with same coords if backfilled from ref
     """
     df["sequence"] = df["sequence"].str.strip().str.upper()
     df = df.sort_values(
@@ -250,24 +250,12 @@ def validate_with_linkml_schema(yaml_path: Path, schema_path: Path, full: bool =
 #         PrimerScheme(**data)  # Errors on validation failure
 
 
-def validate_bed(bed_path: Path, bed_type=Literal["primer", "scheme"]):
+def validate_primer_bed(bed_path: Path):
+    """Check that primer.bed appears to be in Primal Scheme v3 format"""
     bed_columns = count_tsv_columns(bed_path)
-    if bed_type == "primer" and bed_columns != 7:
+    if bed_columns != 7:
         raise RuntimeError(
             f"Primer bed files should have 7 columns: {PRIMER_BED_FIELDS}"
-        )
-    elif bed_type == "scheme" and bed_columns != 6:
-        raise RuntimeError(
-            f"Scheme bed files should have 6 columns: {SCHEME_BED_FIELDS}"
-        )
-    else:
-        logger.info(f"Detected {bed_type} bed file with {bed_columns} columns")
-
-    if bed_type == "primer":
-        hash_primer_bed(bed_path)
-    elif bed_type == "scheme":
-        hash_scheme_bed(
-            bed_path=bed_path, fasta_path=bed_path.parent / "reference.fasta"
         )
 
 
@@ -286,11 +274,10 @@ def infer_bed_type(bed_path: Path) -> str:
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
     logger.info(f"Validating {scheme_dir}")
-    validate_bed(scheme_dir / "primer.bed", bed_type="primer")
+    validate_primer_bed(scheme_dir / "primer.bed")
     validate_with_linkml_schema(
         yaml_path=scheme_dir / "info.yml", schema_path=primer_scheme_schema_path
     )
-    # validate_with_linkml_schema(yaml_path=scheme_dir / "info.yml", full=full)
     scheme = parse_yaml(scheme_dir / "info.yml")
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
