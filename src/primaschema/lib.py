@@ -30,12 +30,20 @@ from . import (
     header_path,
     logger,
     manifest_schema_path,
-    primer_scheme_schema_path,
+    info_schema_path,
 )
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
 PRIMER_BED_FIELDS = SCHEME_BED_FIELDS + ["sequence"]
+HASHED_BED_FIELDS = [
+    "chrom",
+    "chromStart",
+    "chromEnd",
+    "poolName",
+    "strand",
+    "sequence",
+]
 POSITION_FIELDS = ["chromStart", "chromEnd"]
 
 
@@ -117,14 +125,13 @@ def parse_primer_bed(bed_path: Path) -> pd.DataFrame:
 
 def normalise_primer_bed_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Removes terminal whitespace
-    Normalises case
+    Removes terminal whitespace and normalises case
     Sorts by chromStart, chromEnd, poolName, strand, sequence
     Removes duplicate records, collapsing alts with same coords if backfilled from ref
     """
     df["sequence"] = df["sequence"].str.strip().str.upper()
     df = df.sort_values(
-        ["chromStart", "chromEnd", "poolName", "strand", "sequence"]
+        ["chrom", "chromStart", "chromEnd", "poolName", "strand", "sequence"]
     ).drop_duplicates()
     return df
 
@@ -133,9 +140,9 @@ def hash_primer_bed_df(df: pd.DataFrame) -> str:
     """
     Returns prefixed SHA256 digest from stringified dataframe
     """
-    string = df[["chromStart", "chromEnd", "poolName", "strand", "sequence"]].to_csv(
-        index=False
-    )
+    normalised_df = normalise_primer_bed_df(df)
+    string = normalised_df[[*HASHED_BED_FIELDS]].to_csv(index=False, header=False)
+    logger.debug(f"hash_primer_bed_df() {string=}")
     return hash_string(string)
 
 
@@ -205,8 +212,15 @@ def hash_bed(bed_path: Path) -> str:
 
 
 def hash_ref(ref_path: Path):
-    record = SeqIO.read(ref_path, "fasta")
-    return hash_string(record.seq)
+    chroms_seqs = {}
+    for record in SeqIO.parse(ref_path, "fasta"):
+        chroms_seqs[record.id] = str(record.seq).upper()
+    chroms_seqs_sorted = {key: chroms_seqs[key] for key in sorted(chroms_seqs)}
+    hash_fn_input = ""
+    for chrom, seq in chroms_seqs_sorted.items():
+        hash_fn_input += f">{chrom}\n{seq}\n"
+    logger.debug(f"hash_ref() {hash_fn_input=}")
+    return hash_string(hash_fn_input.strip())
 
 
 def count_tsv_columns(bed_path: Path) -> int:
@@ -254,7 +268,9 @@ def validate_with_linkml_schema(yaml_path: Path, schema_path: Path, full: bool =
 #         PrimerScheme(**data)  # Errors on validation failure
 
 
-def validate_primer_bed(bed_path: Path) -> models.BedModel:
+def validate_bed_and_ref(
+    bed_path: Path, ref_path: Path | None = None
+) -> models.BedModel:
     """Check that primer.bed is a tiled PrimalScheme v3 BED"""
     with open(bed_path) as fh:
         bed_contents = fh.readlines()
@@ -280,7 +296,14 @@ def validate_primer_bed(bed_path: Path) -> models.BedModel:
     for (chrom, amplicon_number), primers in amplicons_primers.items():
         amplicons[chrom].append(models.AmpliconModel(primers=primers))
 
-    return models.BedModel(amplicons=amplicons)
+    # If a ref_path is supplied, populate the reference_lengths field of BedModel
+    if ref_path:
+        records = SeqIO.parse(ref_path, "fasta")
+        reference_lengths = {r.id.partition(" ")[0]: len(r.seq) for r in records}
+    else:
+        reference_lengths = None
+
+    return models.BedModel(amplicons=amplicons, reference_lengths=reference_lengths)
 
 
 def infer_bed_type(bed_path: Path) -> str:
@@ -297,17 +320,22 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    validate_with_linkml_schema(
-        yaml_path=scheme_dir / "info.yml", schema_path=primer_scheme_schema_path
-    )
-    logger.info(f"Validated {scheme_dir}/info.yml")
-    validate_primer_bed(scheme_dir / "primer.bed")
-    logger.info(f"Validated {scheme_dir}/primer.bed")
-    scheme = parse_yaml(scheme_dir / "info.yml")
+    logger.info(f"Validating scheme definition {scheme_dir}")
+    yml_path = Path(scheme_dir / "info.yml")
+    bed_path = Path(scheme_dir / "primer.bed")
+    ref_path = Path(scheme_dir / "reference.fasta")
+
+    logger.info("Validating info.yaml")
+    validate_with_linkml_schema(yaml_path=yml_path, schema_path=info_schema_path)
+
+    logger.info("Validating primer.bed and reference.fasta")
+    validate_bed_and_ref(bed_path=bed_path, ref_path=ref_path)
+
+    scheme = parse_yaml(yml_path)
     existing_primer_checksum = scheme.get("primer_checksum")
     existing_reference_checksum = scheme.get("reference_checksum")
-    primer_checksum = hash_bed(scheme_dir / "primer.bed")
-    reference_checksum = hash_ref(scheme_dir / "reference.fasta")
+    primer_checksum = hash_bed(bed_path)
+    reference_checksum = hash_ref(ref_path)
     if (
         existing_primer_checksum
         and not primer_checksum == existing_primer_checksum
@@ -332,9 +360,7 @@ def validate(scheme_dir: Path, full: bool = False, force: bool = False):
         logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
-    logger.info(
-        f"Validation successful for {scheme.get('name')} {scheme.get('version')}"
-    )
+    logger.info(f"Validated {scheme_key(scheme)} ✅")
 
 
 def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
@@ -342,12 +368,13 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
     schemes_paths = {}
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
+            logger.debug(f"{entry.path=}")
             scheme_info = parse_yaml(entry.path)
-            scheme_name = scheme_info["name"]
             scheme_dir = Path(entry.path).parent
-            schemes_paths[scheme_name] = scheme_dir
+            scheme_cname = scheme_key(scheme_info)
+            schemes_paths[scheme_cname] = scheme_dir
 
-    for scheme_name, path in schemes_paths.items():
+    for scheme_cname, path in schemes_paths.items():
         validate(scheme_dir=path, full=full, force=force)
 
 
@@ -405,10 +432,13 @@ def build_recursive(
     schemes_paths = {}
     for entry in scan(root_dir):
         if entry.is_file() and entry.name == "info.yml":
-            scheme = parse_yaml(entry.path)
+            logger.debug(f"{entry.path=}")
+            scheme_info = parse_yaml(entry.path)
             scheme_dir = Path(entry.path).parent
-            schemes_paths[scheme.get("name")] = scheme_dir
-    for scheme, path in schemes_paths.items():
+            scheme_cname = scheme_key(scheme_info)
+            schemes_paths[scheme_cname] = scheme_dir
+
+    for scheme_cname, path in schemes_paths.items():
         build(scheme_dir=path, full=full, force=force)
 
 

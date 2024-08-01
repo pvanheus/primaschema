@@ -1,4 +1,10 @@
-from pydantic import BaseModel, ConfigDict, computed_field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    NonNegativeInt,
+    computed_field,
+    model_validator,
+)
 from typing import Literal
 from typing_extensions import Self
 
@@ -11,8 +17,8 @@ class PrimerModel(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
     chrom: str
-    chrom_start: int
-    chrom_end: int
+    chrom_start: NonNegativeInt
+    chrom_end: NonNegativeInt
     name: str
     pool_name: int
     strand: Literal["+", "-"]
@@ -54,21 +60,55 @@ class AmpliconModel(BaseModel):
     def max_end(self) -> int:
         return max(p.chrom_end for p in self.primers)
 
+    @model_validator(mode="after")
+    def check_left_less_than_right(self) -> Self:
+        if not self.min_start < self.max_end:
+            logger.debug(self.__dict__)
+            raise ValueError(f"Amplicon {self.number} has invalid coordinates")
+        return self
+
 
 class BedModel(BaseModel):
     """A BED file as represented by a collection of amplicons each comprising primer records"""
 
     amplicons: dict[str, list[AmpliconModel]]
+    reference_lengths: dict[str, int] | None = None
 
     @model_validator(mode="after")
-    def check_tiling_bed(self) -> Self:
+    def check_duplicate_primer_names(self) -> Self:
+        primer_names = []
+        for chrom, amplicons in self.amplicons.items():
+            for amplicon in amplicons:
+                for primer in amplicon.primers:
+                    primer_names.append(primer.name)
+        if not len(primer_names) == len(set(primer_names)):
+            raise ValueError("Duplicate primer names detected")
+        return self
+
+    @model_validator(mode="after")
+    def check_primer_bounds(self) -> Self:
+        if self.reference_lengths:
+            ref_lens = self.reference_lengths
+            for chrom, amplicons in self.amplicons.items():
+                for amplicon in amplicons:
+                    if chrom not in ref_lens:
+                        raise ValueError(
+                            f"Reference chromosome {chrom} not found in reference.fasta"
+                        )
+                    if not amplicon.max_end <= ref_lens[chrom]:
+                        raise ValueError(
+                            f"A primer in amplicon {amplicon.number} is beyond the bounds of {chrom}"
+                        )
+        return self
+
+    @model_validator(mode="after")
+    def check_primer_tiling(self) -> Self:
         chroms_amplicon_boundaries = {}
         for chrom, amplicons in self.amplicons.items():
             chrom = chrom.partition(" ")[0]
             chroms_amplicon_boundaries[chrom] = [
                 (a.min_start, a.max_end) for a in amplicons
             ]
-
         for chrom, amplicon_boundaries in chroms_amplicon_boundaries.items():
             BedModel.check_tiling(amplicon_boundaries)
         return self
@@ -113,7 +153,7 @@ class BedModel(BaseModel):
             ):
                 raise ValueError(f"Amplicons {i-1} and {i} do not overlap")
 
-            # Ensure interval overlaps only with previous and next
+            # Check interval overlaps only with previous and next
             for j in range(n):
                 if j != i - 1 and j != i + 1 and j != i:
                     if BedModel.check_overlap(intervals[i], intervals[j]):

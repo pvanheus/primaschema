@@ -15,7 +15,7 @@ pkg_dir = Path(
     )
 )
 schema_dir = pkg_dir / "test" / "data" / "primer-schemes" / "schema"
-primer_scheme_schema_path = schema_dir / "primer-scheme-schema.yml"
+info_schema_path = schema_dir / "info-schema.yml"
 manifest_schema_path = schema_dir / "manifest-schema.json"
 header_path = schema_dir / "manifest-header.yml"
 

@@ -19,23 +19,27 @@ def configure_logging(debug: bool):
             handler.setLevel(logging.INFO)
 
 
-def hash_bed(bed_path: Path):
+def hash_bed(bed_path: Path, debug: bool = False):
     """
     Generate a bed file checksum
 
     :arg bed_path: path of bed file
+    :arg debug: show debug messages
     """
+    configure_logging(debug)
     hex_digest = lib.hash_bed(bed_path)
     print("BED checksum:", file=sys.stderr)
     print(hex_digest)
 
 
-def hash_ref(ref_path: Path):
+def hash_ref(ref_path: Path, debug: bool = False):
     """
     Generate reference sequence checksum
 
     :arg ref_path: path of reference sequence
+    :arg debug: emit debug messages
     """
+    configure_logging(debug)
     hex_digest = lib.hash_ref(ref_path)
     print("Reference checksum:", file=sys.stderr)
     print(hex_digest)
@@ -55,14 +59,18 @@ def validate(scheme_dir: Path, full: bool = False, debug: bool = False):
     return lib.validate(scheme_dir, full=full)
 
 
-def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
+def validate_recursive(
+    root_dir: Path, full: bool = False, force: bool = False, debug: bool = False
+):
     """
     Recursively validate primer scheme bundles in the specified directory
 
     :arg root_dir: path in which to search for schemes
     :arg full: perform meticulous validation using full model
     :arg force: overwrite existing schemes and ignore hash check failures
+    :arg debug: show debug messages
     """
+    configure_logging(debug)
     lib.validate_recursive(root_dir=root_dir, full=full, force=force)
 
 

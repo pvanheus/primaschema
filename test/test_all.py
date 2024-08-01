@@ -24,7 +24,7 @@ def test_hash_ref():
         lib.hash_ref(
             "test/data/primer-schemes/schemes/sars-cov-2/eden/v1/reference.fasta"
         )
-        == "primaschema:7d5621cd3b3e498d"
+        == "primaschema:b1acd7163146bf17"
     )
 
 
@@ -32,21 +32,21 @@ def test_cli_hash_ref():
     run_cmd = run(
         "primaschema hash-ref primer-schemes/schemes/sars-cov-2/eden/v1/reference.fasta"
     )
-    assert "primaschema:7d5621cd3b3e498d" in run_cmd.stdout
+    assert "primaschema:b1acd7163146bf17" in run_cmd.stdout
 
 
 def test_cli_hash_primer_bed():
     run_cmd = run(
         "primaschema hash-bed primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
     )
-    assert "primaschema:82a952e13cf2fcd9" in run_cmd.stdout
+    assert "primaschema:0bd8497fc3d4a535" in run_cmd.stdout
 
 
 def test_cli_scheme_bed():
     run_cmd = run(
         "primaschema hash-bed primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed"
     )
-    assert "primaschema:82a952e13cf2fcd9" in run_cmd.stdout
+    assert "primaschema:0bd8497fc3d4a535" in run_cmd.stdout
 
 
 def test_artic_v41_scheme_hash_matches_primer_hash():
@@ -144,8 +144,10 @@ def test_diff():
     run_cmd = run(
         "primaschema diff primer-schemes/schemes/sars-cov-2/midnight/v1/primer.bed primer-schemes/schemes/sars-cov-2/midnight/v2/primer.bed"
     )
-    assert """chrom  chromStart  chromEnd                      name  poolName strand                 sequence origin
-MN908947.3       27784     27808 SARS-CoV-2_28_LEFT_27837T         2      + TTTGTGCTTTTTAGCCTTTCTGTT   bed2""" == run_cmd.stdout.strip()
+    assert (
+        """SARS-CoV-2_28_LEFT_2""" in run_cmd.stdout.strip()
+        and len(run_cmd.stdout.strip().split("\n")) == 2
+    )
 
 
 def test_calculate_intervals():

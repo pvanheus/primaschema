@@ -23,5 +23,5 @@ notes:
 - Not considered a new version by Freed et al. and IDT despite additional primer
 license: CC-BY-4.0
 status: DEPRECATED
-primer_checksum: primaschema:8f733a1f180c435a
-reference_checksum: primaschema:7d5621cd3b3e498d
+primer_checksum: primaschema:da621e6278d1501d
+reference_checksum: primaschema:b1acd7163146bf17
