@@ -1,6 +1,5 @@
 import hashlib
 import importlib.util
-import io
 import json
 import logging
 import os
@@ -123,33 +122,45 @@ def parse_primer_bed(bed_path: Path) -> pd.DataFrame:
     )
 
 
-def normalise_primer_bed_df(df: pd.DataFrame) -> pd.DataFrame:
+def sort_primer_df(df: pd.DataFrame) -> pd.DataFrame:
+    df["amplicon_number"] = df["name"].apply(lambda x: int(x.split("_")[1]))
+    return df.sort_values(
+        [
+            "chrom",
+            "amplicon_number",
+            "chromStart",
+            "chromEnd",
+            "poolName",
+            "strand",
+            "sequence",
+        ]
+    )[[*PRIMER_BED_FIELDS]]
+
+
+def normalise_primer_df(df: pd.DataFrame) -> pd.DataFrame:
     """
     Removes terminal whitespace and normalises case
     Sorts by chromStart, chromEnd, poolName, strand, sequence
     Removes duplicate records, collapsing alts with same coords if backfilled from ref
     """
     df["sequence"] = df["sequence"].str.strip().str.upper()
-    df = df.sort_values(
-        ["chrom", "chromStart", "chromEnd", "poolName", "strand", "sequence"]
-    ).drop_duplicates()
-    return df
+    return sort_primer_df(df)
 
 
-def hash_primer_bed_df(df: pd.DataFrame) -> str:
+def hash_primer_df(df: pd.DataFrame) -> str:
     """
     Returns prefixed SHA256 digest from stringified dataframe
     """
-    normalised_df = normalise_primer_bed_df(df)
+    normalised_df = normalise_primer_df(df)
     string = normalised_df[[*HASHED_BED_FIELDS]].to_csv(index=False, header=False)
-    logger.debug(f"hash_primer_bed_df() {string=}")
+    logger.debug(f"hash_primer_df() {string=}")
     return hash_string(string)
 
 
 def hash_primer_bed(bed_path: Path):
     """Hash a 7 column primer.bed file"""
     df = parse_primer_bed(bed_path)
-    return hash_primer_bed_df(df)
+    return hash_primer_df(df)
 
 
 def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
@@ -169,15 +180,12 @@ def hash_scheme_bed(bed_path: Path, fasta_path: Path) -> str:
         else:
             raise RuntimeError(f"Invalid strand for BED record {r}")
     bed7_df = pd.DataFrame(records)
-    return hash_primer_bed_df(bed7_df)
+    return hash_primer_df(bed7_df)
 
 
-def convert_primer_bed_to_scheme_bed(bed_path: Path):
+def convert_primer_bed_to_scheme_bed(bed_path: Path) -> str:
     df = parse_primer_bed(bed_path).drop("sequence", axis=1)
-    with io.StringIO() as csv_buffer:
-        df.to_csv(csv_buffer, sep="\t", header=False, index=False)
-        bed_str = csv_buffer.getvalue()
-    return bed_str
+    return df.to_csv(sep="\t", header=False, index=False)
 
 
 def convert_scheme_bed_to_primer_bed(bed_path: Path, fasta_path: Path) -> str:
@@ -194,10 +202,7 @@ def convert_scheme_bed_to_primer_bed(bed_path: Path, fasta_path: Path) -> str:
                 ids_seqs[chrom].seq[start_pos:end_pos].reverse_complement()
             )
     df = pd.DataFrame(records)
-    with io.StringIO() as csv_buffer:
-        df.to_csv(csv_buffer, sep="\t", header=False, index=False)
-        bed_str = csv_buffer.getvalue()
-    return bed_str
+    return df.to_csv(sep="\t", header=False, index=False)
 
 
 def hash_bed(bed_path: Path) -> str:
@@ -216,11 +221,11 @@ def hash_ref(ref_path: Path):
     for record in SeqIO.parse(ref_path, "fasta"):
         chroms_seqs[record.id] = str(record.seq).upper()
     chroms_seqs_sorted = {key: chroms_seqs[key] for key in sorted(chroms_seqs)}
-    hash_fn_input = ""
+    string = ""
     for chrom, seq in chroms_seqs_sorted.items():
-        hash_fn_input += f">{chrom}\n{seq}\n"
-    logger.debug(f"hash_ref() {hash_fn_input=}")
-    return hash_string(hash_fn_input.strip())
+        string += f">{chrom}\n{seq}\n"
+    logger.debug(f"hash_ref() {string=}")
+    return hash_string(string.strip())
 
 
 def count_tsv_columns(bed_path: Path) -> int:
@@ -378,6 +383,12 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
         validate(scheme_dir=path, full=full, force=force)
 
 
+def format_primer_bed(bed_path: Path) -> str:
+    """Sort a primer bed into a maximally compatible format"""
+    df = parse_primer_bed(bed_path)
+    return sort_primer_df(df).to_csv(sep="\t", header=False, index=False)
+
+
 def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
@@ -414,7 +425,8 @@ def build(
         logger.info(f"Writing info.yml to {out_dir}/info.yml")
         yaml.dump(scheme, scheme_fh, sort_keys=False)
     logger.info(f"Copying primer.bed to {out_dir}/primer.bed")
-    shutil.copy(scheme_dir / "primer.bed", out_dir)
+    with open(out_dir / "primer.bed", "w") as primer_fh:
+        primer_fh.write(format_primer_bed(scheme_dir / "primer.bed"))
     logger.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
     shutil.copy(scheme_dir / "reference.fasta", out_dir)
     logger.info(f"Writing scheme.bed to {out_dir}/scheme.bed")
@@ -551,19 +563,19 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     Plots one vertical panel per pool per reference chromosome
     Supported out_path extensions: html (interactive), pdf, png, svg
     """
-    bed_df = parse_primer_bed(bed_path)
-    bed_df["amplicon"] = bed_df["name"].str.split("_").str[1]
-    bed_df["poolName"] = bed_df["poolName"].astype(str)
+    primer_df = parse_primer_bed(bed_path)
+    primer_df["amplicon"] = primer_df["name"].str.split("_").str[1]
+    primer_df["poolName"] = primer_df["poolName"].astype(str)
 
     amp_df = (
-        bed_df.groupby(["chrom", "amplicon", "poolName"])
+        primer_df.groupby(["chrom", "amplicon", "poolName"])
         .agg(min_start=("chromStart", "min"), max_end=("chromEnd", "max"))
         .reset_index()
     )
     amp_df["is_amplicon"] = True
-    bed_df["is_amplicon"] = False
+    primer_df["is_amplicon"] = False
     amp_df = amp_df.rename(columns={"min_start": "chromStart", "max_end": "chromEnd"})
-    combined_df = pd.concat([bed_df, amp_df], ignore_index=True)
+    combined_df = pd.concat([primer_df, amp_df], ignore_index=True)
 
     primer_marks = (
         alt.Chart(combined_df)

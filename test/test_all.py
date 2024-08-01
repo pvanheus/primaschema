@@ -2,6 +2,7 @@ import subprocess
 
 from pathlib import Path
 
+import pytest
 
 import primaschema.lib as lib
 
@@ -39,14 +40,14 @@ def test_cli_hash_primer_bed():
     run_cmd = run(
         "primaschema hash-bed primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed"
     )
-    assert "primaschema:0bd8497fc3d4a535" in run_cmd.stdout
+    assert "primaschema:3ef3e7bb23008684" in run_cmd.stdout
 
 
 def test_cli_scheme_bed():
     run_cmd = run(
         "primaschema hash-bed primer-schemes/schemes/sars-cov-2/artic/v4.1/scheme.bed"
     )
-    assert "primaschema:0bd8497fc3d4a535" in run_cmd.stdout
+    assert "primaschema:3ef3e7bb23008684" in run_cmd.stdout
 
 
 def test_artic_v41_scheme_hash_matches_primer_hash():
@@ -81,8 +82,8 @@ def test_validate_artic_v41():
 
 def test_checksum_case_normalisation():
     assert lib.hash_bed(
-        data_dir / "broken/different-case/eden-v1.primer.bed"
-    ) == lib.hash_bed(data_dir / "broken/different-case/eden-v1-modified.primer.bed")
+        data_dir / "primer-schemes/schemes/sars-cov-2/eden/v1/primer.bed"
+    ) == lib.hash_bed(data_dir / "different-case/eden.modified.primer.bed")
 
 
 def test_validate_recursive():
@@ -189,3 +190,37 @@ def test_6to7_many_ref_chroms():
     with open(primer_bed_path) as fh:
         expected_bed_str = fh.read()
     assert bed_str == expected_bed_str
+
+
+def test_fail_duplicate_primers():
+    with pytest.raises(ValueError):
+        lib.validate(
+            data_dir / "broken/duplicated-primers",
+            full=True,
+        )
+
+
+def test_fail_primer_bounds():
+    with pytest.raises(ValueError):
+        lib.validate(
+            data_dir / "broken/primer-bounds",
+            full=True,
+        )
+
+
+def test_fail_amplicon_tiling():
+    with pytest.raises(ValueError):
+        lib.validate(
+            data_dir / "broken/non-tiling",
+            full=True,
+        )
+
+
+def test_format_primer_bed():
+    """Sort BED into maximally compatible output order"""
+    assert lib.format_primer_bed(data_dir / "unordered/primer.bed").strip() == (
+        """MN908947.3	25	50	SARS-CoV-2_1_LEFT_1	1	+	AACAAACCAACCAACTTTCGATCTC
+MN908947.3	408	431	SARS-CoV-2_1_RIGHT_1	1	-	CTTCTACTAAGCCACAAGTGCCA
+MN908947.3	324	344	SARS-CoV-2_2_LEFT_1	2	+	TTTACAGGTTCGCGACGTGC
+MN908947.3	705	727	SARS-CoV-2_2_RIGHT_1	2	-	ATAAGGATCAGTGCCAAGCTCG"""
+    )

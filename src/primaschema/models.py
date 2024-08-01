@@ -60,13 +60,6 @@ class AmpliconModel(BaseModel):
     def max_end(self) -> int:
         return max(p.chrom_end for p in self.primers)
 
-    @model_validator(mode="after")
-    def check_left_less_than_right(self) -> Self:
-        if not self.min_start < self.max_end:
-            logger.debug(self.__dict__)
-            raise ValueError(f"Amplicon {self.number} has invalid coordinates")
-        return self
-
 
 class BedModel(BaseModel):
     """A BED file as represented by a collection of amplicons each comprising primer records"""
