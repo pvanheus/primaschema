@@ -78,31 +78,25 @@ def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
     full: bool = False,
-    force: bool = False,
+    recursive: bool = False,
+    debug: bool = False,
 ):
     """
-    Build a primer scheme bundle containing info.yml, primer.bed and reference.fasta
+    Build one or many primer scheme bundles containing info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: path of input scheme directory
     :arg out_dir: path of directory in which to save scheme
     :arg full: perform meticulous validation using full model
-    :arg force: overwrite existing output files
+    :arg recursive: recursively find and build primer scheme definitions
+    :arg debug: show debug messages
     """
-    lib.build(scheme_dir=scheme_dir, out_dir=out_dir, full=full, force=force)
-
-
-def build_recursive(
-    root_dir: Path, full: bool = False, force: bool = False, nested: bool = False
-):
-    """
-    Recursively build primer scheme bundles in the specified directory
-
-    :arg root_dir: path in which to search for schemes
-    :arg full: perform meticulous validation using full model
-    :arg force: overwrite existing schemes and ignore hash check failures
-    :arg nested: build definitions dir structure of organism/scheme/amplicon_length/version
-    """
-    lib.build_recursive(root_dir=root_dir, full=full, force=force, nested=nested)
+    configure_logging(debug)
+    lib.build(
+        scheme_dir=scheme_dir,
+        out_dir=out_dir,
+        full=full,
+        recursive=recursive,
+    )
 
 
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
@@ -117,7 +111,7 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
 
 def seven_to_six(bed_path: Path):
     """
-    Convert a 7 column primer.bed file to a 6 column scheme.bed file by droppign a column
+    Convert a 7 column primer.bed file to a 6 column scheme.bed file by removing a column
 
     :arg bed_path: path of primer.bed file
     """
@@ -127,7 +121,7 @@ def seven_to_six(bed_path: Path):
 
 def six_to_seven(bed_path: Path, fasta_path: Path):
     """
-    Convert a 6 column scheme.bed file to a 7 column primer.bed file using a reference sequence
+    Convert a 6 column scheme.bed file to a 7 column primer.bed file using reference backfill
 
     :arg bed_path: path of scheme.bed file
     :arg fasta_path: path of reference sequence
@@ -178,7 +172,7 @@ def print_intervals(bed_path: Path):
 def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     """
     Plot amplicon and primer coords from 7 column primer.bed
-    Requires primers to be named {$scheme_id}_{$amplicon_id}_{LEFT|RIGHT}_{1|2|3…}
+    Requires primers to be named {$scheme_id}_{$amplicon_number}_{LEFT|RIGHT}_{1|2|3…}
 
     :arg bed_path: path of primer.bed file
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
@@ -194,7 +188,6 @@ def main():
             "validate": validate,
             "validate-recursive": validate_recursive,
             "build": build,
-            "build-recursive": build_recursive,
             "build-manifest": build_manifest,
             "diff": diff,
             "6to7": six_to_seven,

@@ -96,12 +96,12 @@ def test_hash_bed():
 
 
 def test_build():
-    run("primaschema build primer-schemes/schemes/sars-cov-2/artic/v4.1 --force")
+    run("primaschema build primer-schemes/schemes/sars-cov-2/artic/v4.1")
     run("rm -rf artic-v4.1")
 
 
 def test_build_recursive():
-    lib.build_recursive(data_dir / "primer-schemes", force=True)
+    lib.build(data_dir / "primer-schemes", recursive=True)
     run("rm -rf built")
 
 

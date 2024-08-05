@@ -10,6 +10,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Literal
 
 import jsonschema
 import yaml
@@ -44,6 +45,7 @@ HASHED_BED_FIELDS = [
     "sequence",
 ]
 POSITION_FIELDS = ["chromStart", "chromEnd"]
+MANDATORY_FILES = ("primer.bed", "reference.fasta", "info.yml")
 
 
 def scan(path):
@@ -325,15 +327,15 @@ def infer_bed_type(bed_path: Path) -> str:
 
 
 def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    logger.info(f"Validating scheme definition {scheme_dir}")
+    logger.debug(f"Validating {scheme_dir}")
     yml_path = Path(scheme_dir / "info.yml")
     bed_path = Path(scheme_dir / "primer.bed")
     ref_path = Path(scheme_dir / "reference.fasta")
 
-    logger.info("Validating info.yaml")
+    logger.debug("Validating info.yaml")
     validate_with_linkml_schema(yaml_path=yml_path, schema_path=info_schema_path)
 
-    logger.info("Validating primer.bed and reference.fasta")
+    logger.debug("Validating primer.bed and reference.fasta")
     validate_bed_and_ref(bed_path=bed_path, ref_path=ref_path)
 
     scheme = parse_yaml(yml_path)
@@ -365,7 +367,7 @@ def validate(scheme_dir: Path, full: bool = False, force: bool = False):
         logging.warning(
             f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
         )
-    logger.info(f"Validated {scheme_key(scheme)} ✅")
+    logger.info(f"Validated {get_scheme_cname(scheme)}")
 
 
 def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
@@ -376,7 +378,7 @@ def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
             logger.debug(f"{entry.path=}")
             scheme_info = parse_yaml(entry.path)
             scheme_dir = Path(entry.path).parent
-            scheme_cname = scheme_key(scheme_info)
+            scheme_cname = get_scheme_cname(scheme_info)
             schemes_paths[scheme_cname] = scheme_dir
 
     for scheme_cname, path in schemes_paths.items():
@@ -393,73 +395,64 @@ def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
     full: bool = False,
-    force: bool = False,
-    nested: bool = True,
-):
+    nested: bool = False,  # Create nested output dir structure
+    recursive: bool = False,
+) -> None:
     """
-    Build a PHA4GE primer scheme bundle.
-    Given a directory path containing info.yml, reference.fasta, and either
-    primer.bed or reference.bed, generate a directory containing info.yml including
-    primer and reference checksums and a canonical primer.bed representation.
+    Validate and build a primer scheme given a scheme directory path.
+    Optionally do so recursively
     """
-    validate(scheme_dir=scheme_dir, full=full, force=force)
-    scheme = parse_yaml(scheme_dir / "info.yml")
-    if nested:
-        organism = Path(
-            str(scheme.get("organism", ""))
-        )  # Default catch all organism dir?
-        name = Path(str(scheme["name"]))
-        amplicon_size = Path(str(scheme.get("amplicon_size", "")))  # Skip if absent
-        version = Path(str(scheme["version"]))
-        out_dir = Path(out_dir) / organism / name / amplicon_size / version
-
+    if recursive:
+        for path in Path(scheme_dir).rglob("info.yml"):
+            if path.is_file() and path.name == "info.yml":
+                build(
+                    scheme_dir=path.parent,
+                    out_dir=out_dir,
+                    full=full,
+                    nested=True,
+                    recursive=False,
+                )
     else:
-        out_dir = Path(out_dir) / scheme["name"]
-    try:
-        out_dir.mkdir(parents=True, exist_ok=force)
-    except FileExistsError:
-        raise FileExistsError(f"Output directory {out_dir} already exists")
-    scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
-    scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
-    with open(out_dir / "info.yml", "w") as scheme_fh:
-        logger.info(f"Writing info.yml to {out_dir}/info.yml")
-        yaml.dump(scheme, scheme_fh, sort_keys=False)
-    logger.info(f"Copying primer.bed to {out_dir}/primer.bed")
-    with open(out_dir / "primer.bed", "w") as primer_fh:
-        primer_fh.write(format_primer_bed(scheme_dir / "primer.bed"))
-    logger.info(f"Copying reference.fasta to {out_dir}/reference.fasta")
-    shutil.copy(scheme_dir / "reference.fasta", out_dir)
-    logger.info(f"Writing scheme.bed to {out_dir}/scheme.bed")
-    scheme_bed_str = convert_primer_bed_to_scheme_bed(bed_path=out_dir / "primer.bed")
-    with open("scheme.bed", "w") as fh:
-        fh.write(scheme_bed_str)
-    shutil.copy("scheme.bed", out_dir.resolve())
-    os.remove("scheme.bed")
+        validate(scheme_dir=scheme_dir, full=full)
+        scheme = parse_yaml(scheme_dir / "info.yml")
+        scheme_cname = get_scheme_cname(scheme)
+        if nested:
+            out_dir = Path(out_dir) / Path(scheme_cname)
+        else:
+            out_dir = Path(out_dir) / scheme["name"]
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            raise FileExistsError(f"Output directory {out_dir} already exists")
+        scheme["primer_checksum"] = hash_bed(scheme_dir / "primer.bed")
+        scheme["reference_checksum"] = hash_ref(scheme_dir / "reference.fasta")
+        with open(out_dir / "info.yml", "w") as scheme_fh:
+            logger.debug(f"Writing info.yml to {out_dir}/info.yml")
+            yaml.dump(scheme, scheme_fh, sort_keys=False)
+        logger.debug(f"Copying primer.bed to {out_dir}/primer.bed")
+        with open(out_dir / "primer.bed", "w") as primer_fh:
+            primer_fh.write(format_primer_bed(scheme_dir / "primer.bed"))
+        logger.debug(f"Copying reference.fasta to {out_dir}/reference.fasta")
+        shutil.copy(scheme_dir / "reference.fasta", out_dir)
+        logger.debug(f"Writing scheme.bed to {out_dir}/scheme.bed")
+        scheme_bed_str = convert_primer_bed_to_scheme_bed(
+            bed_path=out_dir / "primer.bed"
+        )
+        with open(out_dir.resolve() / "scheme.bed", "w") as fh:
+            fh.write(scheme_bed_str)
+
+        if full:
+            logger.info("Perform additional checks")
+
+        logger.info(f"Built {scheme_cname}")
 
 
-def build_recursive(
-    root_dir: Path, full: bool = False, force: bool = False, nested: bool = False
-):
-    """Build all schemes in a directory tree"""
-    schemes_paths = {}
-    for entry in scan(root_dir):
-        if entry.is_file() and entry.name == "info.yml":
-            logger.debug(f"{entry.path=}")
-            scheme_info = parse_yaml(entry.path)
-            scheme_dir = Path(entry.path).parent
-            scheme_cname = scheme_key(scheme_info)
-            schemes_paths[scheme_cname] = scheme_dir
-
-    for scheme_cname, path in schemes_paths.items():
-        build(scheme_dir=path, full=full, force=force)
-
-
-def scheme_key(scheme: dict) -> str:
+def get_scheme_cname(scheme: dict, sep: Literal["/", "."] = "/") -> str:
     organism = str(scheme.get("organism", ""))
     name = str(scheme["name"])
     amplicon_size = str(scheme.get("amplicon_size", ""))
     version = str(scheme["version"])
-    return "/".join([organism, name, amplicon_size, version])
+    return sep.join([organism, name, amplicon_size, version])
 
 
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
@@ -488,7 +481,7 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
             )
         schemes.append(scheme)
 
-    manifest["schemes"] = sorted(schemes, key=scheme_key)
+    manifest["schemes"] = sorted(schemes, key=get_scheme_cname)
 
     manifest_file_name = "index.yml"
     with open(out_dir / manifest_file_name, "w") as fh:
