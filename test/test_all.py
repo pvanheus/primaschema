@@ -87,7 +87,7 @@ def test_checksum_case_normalisation():
 
 
 def test_validate_recursive():
-    run("primaschema validate-recursive primer-schemes")
+    run("primaschema validate --recursive primer-schemes")
 
 
 def test_hash_bed():

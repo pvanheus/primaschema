@@ -45,33 +45,26 @@ def hash_ref(ref_path: Path, debug: bool = False):
     print(hex_digest)
 
 
-def validate(scheme_dir: Path, full: bool = False, debug: bool = False):
-    """
-    Validate a primer scheme bundle containing info.yml, primer.bed and reference.fasta
-
-    :arg scheme_dir: path of scheme.bed file
-    :arg out_dir: path of directory in which to save primer.bed
-    :arg force: overwrite existing output files
-    :arg full: perform meticulous validation using full model
-    :arg debug: show debug messages
-    """
-    configure_logging(debug)
-    return lib.validate(scheme_dir, full=full)
-
-
-def validate_recursive(
-    root_dir: Path, full: bool = False, force: bool = False, debug: bool = False
+def validate(
+    scheme_dir: Path,
+    full: bool = False,
+    ignore_checksums: bool = False,
+    recursive: bool = False,
+    debug: bool = False,
 ):
     """
-    Recursively validate primer scheme bundles in the specified directory
+    Validate one or many primer schemee bundles containing info.yml, primer.bed and reference.fasta
 
-    :arg root_dir: path in which to search for schemes
+    :arg scheme_dir: path of scheme.bed file
     :arg full: perform meticulous validation using full model
-    :arg force: overwrite existing schemes and ignore hash check failures
+    :arg ignore_checksums: ignore checksum mismatches
+    :arg recursive: recursively find and validate primer scheme definitions
     :arg debug: show debug messages
     """
     configure_logging(debug)
-    lib.validate_recursive(root_dir=root_dir, full=full, force=force)
+    return lib.validate(
+        scheme_dir, full=full, ignore_checksums=ignore_checksums, recursive=recursive
+    )
 
 
 def build(
@@ -87,7 +80,7 @@ def build(
     :arg scheme_dir: path of input scheme directory
     :arg out_dir: path of directory in which to save scheme
     :arg full: perform meticulous validation using full model
-    :arg recursive: recursively find and build primer scheme definitions
+    :arg recursive: recursively find, validate and build primer scheme definitions
     :arg debug: show debug messages
     """
     configure_logging(debug)
@@ -186,7 +179,6 @@ def main():
             "hash-ref": hash_ref,
             "hash-bed": hash_bed,
             "validate": validate,
-            "validate-recursive": validate_recursive,
             "build": build,
             "build-manifest": build_manifest,
             "diff": diff,

@@ -326,63 +326,78 @@ def infer_bed_type(bed_path: Path) -> str:
     return bed_type
 
 
-def validate(scheme_dir: Path, full: bool = False, force: bool = False):
-    logger.debug(f"Validating {scheme_dir}")
-    yml_path = Path(scheme_dir / "info.yml")
-    bed_path = Path(scheme_dir / "primer.bed")
-    ref_path = Path(scheme_dir / "reference.fasta")
+def validate(
+    scheme_dir: Path,
+    full: bool = False,
+    ignore_checksums: bool = False,
+    recursive: bool = False,
+):
+    if recursive:
+        for path in Path(scheme_dir).rglob("info.yml"):
+            if path.is_file() and path.name == "info.yml":
+                validate(
+                    scheme_dir=path.parent, full=full, ignore_checksums=ignore_checksums
+                )
+    else:
+        logger.debug(f"Validating {scheme_dir}")
+        yml_path = Path(scheme_dir / "info.yml")
+        bed_path = Path(scheme_dir / "primer.bed")
+        ref_path = Path(scheme_dir / "reference.fasta")
 
-    logger.debug("Validating info.yaml")
-    validate_with_linkml_schema(yaml_path=yml_path, schema_path=info_schema_path)
+        logger.debug("Validating info.yaml")
+        validate_with_linkml_schema(yaml_path=yml_path, schema_path=info_schema_path)
 
-    logger.debug("Validating primer.bed and reference.fasta")
-    validate_bed_and_ref(bed_path=bed_path, ref_path=ref_path)
+        logger.debug("Validating primer.bed and reference.fasta")
+        validate_bed_and_ref(bed_path=bed_path, ref_path=ref_path)
 
-    scheme = parse_yaml(yml_path)
-    existing_primer_checksum = scheme.get("primer_checksum")
-    existing_reference_checksum = scheme.get("reference_checksum")
-    primer_checksum = hash_bed(bed_path)
-    reference_checksum = hash_ref(ref_path)
-    if (
-        existing_primer_checksum
-        and not primer_checksum == existing_primer_checksum
-        and not force
-    ):
-        raise RuntimeError(
-            f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
-        )
-    elif not primer_checksum == existing_primer_checksum:
-        logging.warning(
-            f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
-        )
-    if (
-        existing_reference_checksum
-        and not reference_checksum == existing_reference_checksum
-        and not force
-    ):
-        raise RuntimeError(
-            f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
-        )
-    elif not reference_checksum == existing_reference_checksum:
-        logging.warning(
-            f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
-        )
-    logger.info(f"Validated {get_scheme_cname(scheme)}")
+        scheme = parse_yaml(yml_path)
+        existing_primer_checksum = scheme.get("primer_checksum")
+        existing_reference_checksum = scheme.get("reference_checksum")
+        primer_checksum = hash_bed(bed_path)
+        reference_checksum = hash_ref(ref_path)
+        if (
+            existing_primer_checksum
+            and not primer_checksum == existing_primer_checksum
+            and not ignore_checksums
+        ):
+            raise RuntimeError(
+                f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
+            )
+        elif not primer_checksum == existing_primer_checksum:
+            logging.warning(
+                f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
+            )
+        if (
+            existing_reference_checksum
+            and not reference_checksum == existing_reference_checksum
+            and not ignore_checksums
+        ):
+            raise RuntimeError(
+                f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
+            )
+        elif not reference_checksum == existing_reference_checksum:
+            logging.warning(
+                f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
+            )
+        logger.info(f"Validated {get_scheme_cname(scheme)}")
+
+        if full:
+            logger.info("Extra validation checks go here")
 
 
-def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
-    """Validate all schemes in a directory tree"""
-    schemes_paths = {}
-    for entry in scan(root_dir):
-        if entry.is_file() and entry.name == "info.yml":
-            logger.debug(f"{entry.path=}")
-            scheme_info = parse_yaml(entry.path)
-            scheme_dir = Path(entry.path).parent
-            scheme_cname = get_scheme_cname(scheme_info)
-            schemes_paths[scheme_cname] = scheme_dir
+# def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
+#     """Validate all schemes in a directory tree"""
+#     schemes_paths = {}
+#     for entry in scan(root_dir):
+#         if entry.is_file() and entry.name == "info.yml":
+#             logger.debug(f"{entry.path=}")
+#             scheme_info = parse_yaml(entry.path)
+#             scheme_dir = Path(entry.path).parent
+#             scheme_cname = get_scheme_cname(scheme_info)
+#             schemes_paths[scheme_cname] = scheme_dir
 
-    for scheme_cname, path in schemes_paths.items():
-        validate(scheme_dir=path, full=full, force=force)
+#     for scheme_cname, path in schemes_paths.items():
+#         validate(scheme_dir=path, full=full, ignore_checksums=ig)
 
 
 def format_primer_bed(bed_path: Path) -> str:
@@ -410,7 +425,6 @@ def build(
                     out_dir=out_dir,
                     full=full,
                     nested=True,
-                    recursive=False,
                 )
     else:
         validate(scheme_dir=scheme_dir, full=full)
@@ -442,7 +456,7 @@ def build(
             fh.write(scheme_bed_str)
 
         if full:
-            logger.info("Perform additional checks")
+            logger.info("Plotting code goes here")
 
         logger.info(f"Built {scheme_cname}")
 
