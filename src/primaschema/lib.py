@@ -409,7 +409,7 @@ def format_primer_bed(bed_path: Path) -> str:
 def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
-    full: bool = False,
+    plot: bool = True,
     nested: bool = False,  # Create nested output dir structure
     recursive: bool = False,
 ) -> None:
@@ -423,11 +423,11 @@ def build(
                 build(
                     scheme_dir=path.parent,
                     out_dir=out_dir,
-                    full=full,
+                    plot=plot,
                     nested=True,
                 )
     else:
-        validate(scheme_dir=scheme_dir, full=full)
+        validate(scheme_dir=scheme_dir)
         scheme = parse_yaml(scheme_dir / "info.yml")
         scheme_cname = get_scheme_cname(scheme)
         if nested:
@@ -455,8 +455,8 @@ def build(
         with open(out_dir.resolve() / "scheme.bed", "w") as fh:
             fh.write(scheme_bed_str)
 
-        if full:
-            logger.info("Plotting code goes here")
+        if plot:
+            plot_primers(bed_path=out_dir / "primer.bed", out_path=out_dir / "plot.svg")
 
         logger.info(f"Built {scheme_cname}")
 
@@ -563,7 +563,7 @@ def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
     return all_intervals
 
 
-def plot(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
+def plot_primers(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     """
     Plot amplicon and primer positions from a 7 column primer.bed file
     Requires primers to be named {$scheme_id}_{$amplicon_id}_{LEFT|RIGHT}_{1|2|3…}

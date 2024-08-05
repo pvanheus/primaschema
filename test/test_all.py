@@ -169,14 +169,14 @@ def test_print_intervals():
 
 
 def test_plot_single_ref_chrom_ref():
-    lib.plot(
+    lib.plot_primers(
         data_dir / "primer-schemes/schemes/sars-cov-2/artic/v4.1/primer.bed",
     )
     run("rm -rf plot.html", cwd="./")
 
 
 def test_plot_many_ref_chroms_ref():
-    lib.plot(data_dir / "many-ref-chroms/primer.bed")
+    lib.plot_primers(data_dir / "many-ref-chroms/primer.bed")
     run("rm -rf plot.html", cwd="./")
 
 

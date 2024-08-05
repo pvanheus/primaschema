@@ -70,7 +70,7 @@ def validate(
 def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
-    full: bool = False,
+    plot: bool = True,
     recursive: bool = False,
     debug: bool = False,
 ):
@@ -79,7 +79,7 @@ def build(
 
     :arg scheme_dir: path of input scheme directory
     :arg out_dir: path of directory in which to save scheme
-    :arg full: perform meticulous validation using full model
+    :arg plot: Plot primers in SVG format
     :arg recursive: recursively find, validate and build primer scheme definitions
     :arg debug: show debug messages
     """
@@ -87,7 +87,7 @@ def build(
     lib.build(
         scheme_dir=scheme_dir,
         out_dir=out_dir,
-        full=full,
+        plot=plot,
         recursive=recursive,
     )
 
@@ -170,7 +170,7 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     :arg bed_path: path of primer.bed file
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
     """
-    lib.plot(bed_path=bed_path, out_path=out_path)
+    lib.plot_primers(bed_path=bed_path, out_path=out_path)
 
 
 def main():
