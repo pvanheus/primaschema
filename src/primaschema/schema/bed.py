@@ -9,9 +9,6 @@ from typing import Literal
 from typing_extensions import Self
 
 
-from . import logger
-
-
 class PrimerModel(BaseModel):
     """A primer as represented by a BED record in Primal Scheme v3 format"""
 
@@ -115,7 +112,6 @@ class BedModel(BaseModel):
     def check_tiling(intervals):
         """Verify if each interval overlaps exactly once with the interval before it and after it,
         and does not overlap with any other interval"""
-        logger.debug(f"{intervals=}")
         n = len(intervals)
         if n < 2:
             raise ValueError("Fewer than two amplicons detected")

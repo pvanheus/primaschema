@@ -50,6 +50,7 @@ def validate(
     full: bool = False,
     ignore_checksums: bool = False,
     recursive: bool = False,
+    rebuild: bool = False,
     debug: bool = False,
 ):
     """
@@ -59,17 +60,23 @@ def validate(
     :arg full: perform meticulous validation using full model
     :arg ignore_checksums: ignore checksum mismatches
     :arg recursive: recursively find and validate primer scheme definitions
+    :arg rebuild: forcibly rebuild the pydantic model from the linkml model
     :arg debug: show debug messages
     """
     configure_logging(debug)
     return lib.validate(
-        scheme_dir, full=full, ignore_checksums=ignore_checksums, recursive=recursive
+        scheme_dir,
+        full=full,
+        ignore_checksums=ignore_checksums,
+        recursive=recursive,
+        rebuild=rebuild,
     )
 
 
 def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
+    nested: bool = True,
     plot: bool = True,
     recursive: bool = False,
     debug: bool = False,
@@ -79,7 +86,8 @@ def build(
 
     :arg scheme_dir: path of input scheme directory
     :arg out_dir: path of directory in which to save scheme
-    :arg plot: Plot primers in SVG format
+    :arg nested: use nested output structure ({organism}/{scheme_name}/{amplicon_length}/{version})
+    :arg plot: plot primers in SVG format
     :arg recursive: recursively find, validate and build primer scheme definitions
     :arg debug: show debug messages
     """
@@ -144,7 +152,9 @@ def show_non_ref_alts(scheme_dir: Path):
 
     :arg scheme_dir: path of input scheme directory
     """
-    print(lib.show_non_ref_alts(scheme_dir=scheme_dir))
+    df = lib.show_non_ref_alts(scheme_dir=scheme_dir)
+    if not df.empty:
+        print(df.to_string(index=False))
 
 
 def print_intervals(bed_path: Path):
@@ -165,7 +175,7 @@ def print_intervals(bed_path: Path):
 def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     """
     Plot amplicon and primer coords from 7 column primer.bed
-    Requires primers to be named {$scheme_id}_{$amplicon_number}_{LEFT|RIGHT}_{1|2|3…}
+    Requires primers to be named {scheme_name}_{amplicon_number}_{LEFT|RIGHT}_{1|2|3…}
 
     :arg bed_path: path of primer.bed file
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
@@ -176,11 +186,11 @@ def plot(bed_path: Path, out_path: Path = Path("plot.html")):
 def main():
     defopt.run(
         {
-            "hash-ref": hash_ref,
-            "hash-bed": hash_bed,
             "validate": validate,
             "build": build,
-            "build-manifest": build_manifest,
+            "manifest": build_manifest,
+            "hash-ref": hash_ref,
+            "hash-bed": hash_bed,
             "diff": diff,
             "6to7": six_to_seven,
             "7to6": seven_to_six,

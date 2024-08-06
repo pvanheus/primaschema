@@ -1,4 +1,4 @@
-"""A toolkit for tiling primer scheme definitions"""
+"""Infrastructure for tiled amplicon PCR primer scheme definitions"""
 
 import logging
 import logging.config
@@ -11,12 +11,11 @@ __version__ = "1.0.0a0"
 
 pkg_dir = Path(
     os.environ.get(
-        "PRIMER_SCHEMES_PATH", Path(__file__).absolute().parent.parent.parent
+        "PRIMASCHEMA_ROOT_PATH", Path(__file__).absolute().parent.parent.parent
     )
 )
-schema_dir = pkg_dir / "test" / "data" / "primer-schemes" / "schema"
-info_schema_path = schema_dir / "info-schema.yml"
-manifest_schema_path = schema_dir / "manifest-schema.json"
+schema_dir = pkg_dir / "src" / "primaschema" / "schema"
+manifest_schema_path = schema_dir / "manifest.json"
 header_path = schema_dir / "manifest-header.yml"
 
 logging_config = {

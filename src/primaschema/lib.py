@@ -1,8 +1,5 @@
 import hashlib
-import importlib.util
 import json
-import logging
-import os
 import re
 import shutil
 import sys
@@ -13,6 +10,7 @@ from tempfile import TemporaryDirectory
 from typing import Literal
 
 import jsonschema
+import linkml.validator
 import yaml
 
 import altair as alt
@@ -20,18 +18,16 @@ import pandas as pd
 
 from Bio import SeqIO
 
-# from linkml.generators.pydanticgen import PydanticGenerator
-from linkml.generators.pythongen import PythonGenerator
-from linkml_runtime.utils.schemaview import SchemaView
-from linkml.validators import JsonSchemaDataValidator
+from linkml.generators.pydanticgen import PydanticGenerator
 
 from . import (
-    models,
     header_path,
     logger,
     manifest_schema_path,
-    info_schema_path,
+    schema_dir,
 )
+
+from .schema import bed, info
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -46,41 +42,6 @@ HASHED_BED_FIELDS = [
 ]
 POSITION_FIELDS = ["chromStart", "chromEnd"]
 MANDATORY_FILES = ("primer.bed", "reference.fasta", "info.yml")
-
-
-def scan(path):
-    """Recursively yield DirEntry objects"""
-    for entry in os.scandir(path):
-        if entry.is_dir(follow_symlinks=False):
-            yield from scan(entry.path)
-        else:
-            yield entry
-
-
-def import_class_from_path(file_path, class_name="PrimerScheme"):
-    spec = importlib.util.spec_from_file_location(class_name, file_path)
-    if spec is None:
-        raise ImportError(f"Failed to load schema from {file_path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return getattr(module, class_name)
-
-
-# def get_primer_schemes_path():
-#     """Locate primer-schemes repo root using environment variable"""
-#     env_var = "PRIMER_SCHEMES_PATH"
-#     if (
-#         env_var not in os.environ
-#         or not (
-#             Path(os.environ[env_var]).resolve()
-#             / Path("schema")
-#             / Path("primer_scheme.yml")
-#         ).exists()
-#     ):
-#         raise RuntimeError(
-#             f'Invalid or unset environment variable {env_var} ({os.environ.get(env_var)}).\n\nSet {env_var} to the path of a local copy of the primer-schemes repo to proceed. For example, do `git clone https://github.com/pha4ge/primer-schemes` followed by `export {env_var}="/path/to/primer-schemes"`'
-#         )
-#     return Path(os.environ[env_var]).resolve()
 
 
 def hash_string(string: str) -> str:
@@ -239,45 +200,29 @@ def parse_yaml(path) -> dict:
         return yaml.safe_load(fh)
 
 
-def validate_yaml_with_json_schema(yaml_path: Path, schema_path: Path):
-    yaml_data = parse_yaml(yaml_path)
+def validate_yaml_with_jsonschema(yaml_path: Path, schema_path: Path) -> None:
+    data = parse_yaml(yaml_path)
     with open(schema_path, "r") as schema_fh:
         schema = json.load(schema_fh)
-    return jsonschema.validate(yaml_data, schema=schema)
+    jsonschema.validate(data, schema=schema)
 
 
-def validate_with_linkml_schema(yaml_path: Path, schema_path: Path, full: bool = False):
-    schema_view = SchemaView(schema_path)
-    schema_gen = PythonGenerator(schema_view.schema)
-    schema_compiled = schema_gen.compile_module()
+def validate_yaml_with_linkml(yaml_path: Path, schema_path: Path) -> None:
     data = parse_yaml(yaml_path)
-    data_instance = schema_compiled.PrimerScheme(**data)
-    # print(yaml_dumper.dumps(data_instance))
-    validator = JsonSchemaDataValidator(schema_view.schema)
-    validator.validate_object(data_instance)
+    report = linkml.validator.validate(data, schema_path, "PrimerScheme")
+    if report.results:
+        msg = ""
+        for result in report.results:
+            msg += f"{result.message}\n"
+        raise ValueError(msg)
 
 
-# def validate_with_linkml_schema(yaml_path: Path, full: bool = False):
-#     data = parse_yaml(yaml_path)
-#     schema_path = get_primer_schemes_path() / "schema/primer_scheme.yml"
-#     pythonised_schema_path = get_primer_schemes_path() / "schema/primer_scheme.py"
-#     if full:
-#         schema_view = SchemaView(schema_path)
-#         schema_gen = PythonGenerator(schema_view.schema)
-#         schema_compiled = schema_gen.compile_module()
-#         schema_compiled.PrimerScheme(**data)  # Errors on validation failure
-#     else:
-#         if not pythonised_schema_path.exists():
-#             run(f"gen-python {schema_path} > {pythonised_schema_path}")
-#             logger.info(f"Wrote Pythonised schema to {pythonised_schema_path}")
-#             print(run("ls").stdout)
-#         PrimerScheme = import_class_from_path(pythonised_schema_path)
-#         PrimerScheme(**data)  # Errors on validation failure
+def validate_yaml_with_pydantic(yaml_path: Path, schema_path: Path) -> None:
+    data = parse_yaml(yaml_path)
+    info.PrimerScheme(**data)
 
 
-def validate_bed_and_ref(
-    bed_path: Path, ref_path: Path | None = None
-) -> models.BedModel:
+def validate_bed_and_ref(bed_path: Path, ref_path: Path | None = None) -> bed.BedModel:
     """Check that primer.bed is a tiled PrimalScheme v3 BED"""
     with open(bed_path) as fh:
         bed_contents = fh.readlines()
@@ -285,7 +230,7 @@ def validate_bed_and_ref(
     amplicons_primers = defaultdict(list)
     for line in bed_contents:
         r = line.split("\t")
-        primer = models.PrimerModel(
+        primer = bed.PrimerModel(
             chrom=r[0],
             chrom_start=int(r[1]),
             chrom_end=int(r[2]),
@@ -301,7 +246,7 @@ def validate_bed_and_ref(
 
     amplicons = defaultdict(list)
     for (chrom, amplicon_number), primers in amplicons_primers.items():
-        amplicons[chrom].append(models.AmpliconModel(primers=primers))
+        amplicons[chrom].append(bed.AmpliconModel(primers=primers))
 
     # If a ref_path is supplied, populate the reference_lengths field of BedModel
     if ref_path:
@@ -310,7 +255,7 @@ def validate_bed_and_ref(
     else:
         reference_lengths = None
 
-    return models.BedModel(amplicons=amplicons, reference_lengths=reference_lengths)
+    return bed.BedModel(amplicons=amplicons, reference_lengths=reference_lengths)
 
 
 def infer_bed_type(bed_path: Path) -> str:
@@ -331,7 +276,10 @@ def validate(
     full: bool = False,
     ignore_checksums: bool = False,
     recursive: bool = False,
-):
+    rebuild: bool = False,
+) -> None:
+    info_schema_linkml_path = schema_dir / "info.yml"
+    info_schema_pydantic_path = schema_dir / "info.py"
     if recursive:
         for path in Path(scheme_dir).rglob("info.yml"):
             if path.is_file() and path.name == "info.yml":
@@ -344,8 +292,25 @@ def validate(
         bed_path = Path(scheme_dir / "primer.bed")
         ref_path = Path(scheme_dir / "reference.fasta")
 
-        logger.debug("Validating info.yaml")
-        validate_with_linkml_schema(yaml_path=yml_path, schema_path=info_schema_path)
+        if (
+            rebuild
+            or not info_schema_pydantic_path.exists()
+            or info_schema_pydantic_path.stat().st_size == 0
+        ):
+            logger.info("Building intermediate pydantic model")
+            with open(info_schema_pydantic_path, "w") as fh:
+                fh.write(PydanticGenerator(info_schema_linkml_path).serialize())
+
+        if full:
+            logger.debug("Validating with linkml model")
+            validate_yaml_with_linkml(
+                yaml_path=yml_path, schema_path=info_schema_linkml_path
+            )
+        else:
+            logger.debug("Validating with pydantic model")
+            validate_yaml_with_pydantic(
+                yaml_path=yml_path, schema_path=info_schema_pydantic_path
+            )
 
         logger.debug("Validating primer.bed and reference.fasta")
         validate_bed_and_ref(bed_path=bed_path, ref_path=ref_path)
@@ -364,7 +329,7 @@ def validate(
                 f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
             )
         elif not primer_checksum == existing_primer_checksum:
-            logging.warning(
+            logger.warning(
                 f"Calculated and documented primer checksums do not match ({primer_checksum} and {existing_primer_checksum})"
             )
         if (
@@ -376,28 +341,13 @@ def validate(
                 f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
             )
         elif not reference_checksum == existing_reference_checksum:
-            logging.warning(
+            logger.warning(
                 f"Calculated and documented reference checksums do not match ({reference_checksum} and {existing_reference_checksum})"
             )
         logger.info(f"Validated {get_scheme_cname(scheme)}")
 
         if full:
-            logger.info("Extra validation checks go here")
-
-
-# def validate_recursive(root_dir: Path, full: bool = False, force: bool = False):
-#     """Validate all schemes in a directory tree"""
-#     schemes_paths = {}
-#     for entry in scan(root_dir):
-#         if entry.is_file() and entry.name == "info.yml":
-#             logger.debug(f"{entry.path=}")
-#             scheme_info = parse_yaml(entry.path)
-#             scheme_dir = Path(entry.path).parent
-#             scheme_cname = get_scheme_cname(scheme_info)
-#             schemes_paths[scheme_cname] = scheme_dir
-
-#     for scheme_cname, path in schemes_paths.items():
-#         validate(scheme_dir=path, full=full, ignore_checksums=ig)
+            pass
 
 
 def format_primer_bed(bed_path: Path) -> str:
@@ -433,7 +383,7 @@ def build(
         if nested:
             out_dir = Path(out_dir) / Path(scheme_cname)
         else:
-            out_dir = Path(out_dir) / scheme["name"]
+            out_dir = Path(out_dir) / get_scheme_cname(scheme, sep=".")
         try:
             out_dir.mkdir(parents=True, exist_ok=True)
         except FileExistsError:
@@ -501,7 +451,7 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
     with open(out_dir / manifest_file_name, "w") as fh:
         logger.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
         yaml.dump(data=manifest, stream=fh, sort_keys=False)
-    validate_yaml_with_json_schema(
+    validate_yaml_with_jsonschema(
         yaml_path=out_dir / manifest_file_name, schema_path=manifest_schema_path
     )
 
@@ -517,15 +467,19 @@ def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
     return pd.concat([df1, df2]).drop_duplicates(subset=column_subset, keep=False)
 
 
-def show_non_ref_alts(scheme_dir: Path):
+def show_non_ref_alts(scheme_dir: Path) -> pd.DataFrame:
     """Show primer records with sequences not matching the reference sequence"""
     bed_path = scheme_dir / "primer.bed"
     with TemporaryDirectory() as temp_dir:
-        convert_scheme_bed_to_primer_bed(
-            bed_path=scheme_dir / "scheme.bed",
-            fasta_path=scheme_dir / "reference.fasta",
-        )
-        return diff(bed1_path=bed_path, bed2_path=Path(temp_dir) / "primer.bed")
+        backfilled_bed_path = Path(temp_dir) / "primer.bed"
+        with open(backfilled_bed_path, "w") as fh:
+            fh.write(
+                convert_scheme_bed_to_primer_bed(
+                    bed_path=scheme_dir / "scheme.bed",
+                    fasta_path=scheme_dir / "reference.fasta",
+                )
+            )
+        return diff(bed1_path=bed_path, bed2_path=backfilled_bed_path)
 
 
 def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
