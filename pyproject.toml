@@ -10,7 +10,7 @@ authors = [
 ]
 dynamic = ["version", "description"]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 keywords = ["genomics"]
 license = {text = "MIT License"}
 classifiers = [
@@ -32,7 +32,7 @@ dependencies = [
     "natsort>=8.4.0",
     "pandas>=1.5.3",
     "pyyaml",
-    "vl-convert-python>=1.4.0"
+    "vl-convert-python"
 ]
 
 [project.scripts]

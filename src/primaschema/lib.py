@@ -1,5 +1,4 @@
 import hashlib
-import json
 import re
 import shutil
 import sys
@@ -7,9 +6,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Literal
+from typing import Literal, Optional, Dict, Tuple
 
-import jsonschema
 import linkml.validator
 import yaml
 
@@ -23,7 +21,6 @@ from linkml.generators.pydanticgen import PydanticGenerator
 from . import (
     header_path,
     logger,
-    manifest_schema_path,
     schema_dir,
 )
 
@@ -195,21 +192,14 @@ def count_tsv_columns(bed_path: Path) -> int:
     return len(pd.read_csv(bed_path, sep="\t").columns)
 
 
-def parse_yaml(path) -> dict:
+def parse_yaml(path: Path) -> dict:
     with open(path, "r") as fh:
         return yaml.safe_load(fh)
 
 
-def validate_yaml_with_jsonschema(yaml_path: Path, schema_path: Path) -> None:
-    data = parse_yaml(yaml_path)
-    with open(schema_path, "r") as schema_fh:
-        schema = json.load(schema_fh)
-    jsonschema.validate(data, schema=schema)
-
-
-def validate_yaml_with_linkml(yaml_path: Path, schema_path: Path) -> None:
-    data = parse_yaml(yaml_path)
-    report = linkml.validator.validate(data, schema_path, "PrimerScheme")
+def validate_scheme_yaml_with_linkml(path: Path) -> None:
+    data = parse_yaml(path)
+    report = linkml.validator.validate(data, schema_dir / "info.yml", "PrimerScheme")
     if report.results:
         msg = ""
         for result in report.results:
@@ -217,12 +207,15 @@ def validate_yaml_with_linkml(yaml_path: Path, schema_path: Path) -> None:
         raise ValueError(msg)
 
 
-def validate_yaml_with_pydantic(yaml_path: Path, schema_path: Path) -> None:
-    data = parse_yaml(yaml_path)
-    info.PrimerScheme(**data)
+def parse_scheme_yaml(path: Path) -> dict:
+    """Parse and validate with Pydantic"""
+    data = parse_yaml(path)
+    return info.PrimerScheme(**data).model_dump()
 
 
-def validate_bed_and_ref(bed_path: Path, ref_path: Path | None = None) -> bed.BedModel:
+def validate_bed_and_ref(
+    bed_path: Path, ref_path: Optional[Path] = None
+) -> bed.BedModel:
     """Check that primer.bed is a tiled PrimalScheme v3 BED"""
     with open(bed_path) as fh:
         bed_contents = fh.readlines()
@@ -303,19 +296,15 @@ def validate(
 
         if full:
             logger.debug("Validating with linkml model")
-            validate_yaml_with_linkml(
-                yaml_path=yml_path, schema_path=info_schema_linkml_path
-            )
+            validate_scheme_yaml_with_linkml(path=yml_path)
         else:
             logger.debug("Validating with pydantic model")
-            validate_yaml_with_pydantic(
-                yaml_path=yml_path, schema_path=info_schema_pydantic_path
-            )
+            parse_scheme_yaml(yml_path)
 
         logger.debug("Validating primer.bed and reference.fasta")
         validate_bed_and_ref(bed_path=bed_path, ref_path=ref_path)
 
-        scheme = parse_yaml(yml_path)
+        scheme = parse_scheme_yaml(yml_path)
         existing_primer_checksum = scheme.get("primer_checksum")
         existing_reference_checksum = scheme.get("reference_checksum")
         primer_checksum = hash_bed(bed_path)
@@ -451,9 +440,7 @@ def build_manifest(root_dir: Path, out_dir: Path = Path()):
     with open(out_dir / manifest_file_name, "w") as fh:
         logger.info(f"Writing {manifest_file_name} to {out_dir}/{manifest_file_name}")
         yaml.dump(data=manifest, stream=fh, sort_keys=False)
-    validate_yaml_with_jsonschema(
-        yaml_path=out_dir / manifest_file_name, schema_path=manifest_schema_path
-    )
+    # validate_manifest_yaml_with_jsonschema(path=out_dir / manifest_file_name)
 
 
 def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
@@ -482,7 +469,7 @@ def show_non_ref_alts(scheme_dir: Path) -> pd.DataFrame:
         return diff(bed1_path=bed_path, bed2_path=backfilled_bed_path)
 
 
-def compute_intervals(bed_path: Path) -> dict[str, dict[str, (int, int)]]:
+def compute_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
     """
     find primer positions for all primers in the bed file and compute maximum
     interval between primers of the same name

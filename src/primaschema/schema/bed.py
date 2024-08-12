@@ -5,8 +5,7 @@ from pydantic import (
     computed_field,
     model_validator,
 )
-from typing import Literal
-from typing_extensions import Self
+from typing import Dict, List, Literal, Optional, Tuple
 
 
 class PrimerModel(BaseModel):
@@ -23,7 +22,7 @@ class PrimerModel(BaseModel):
 
     @computed_field
     @property
-    def name_parts(self) -> list[str]:
+    def name_parts(self) -> List[str]:
         parts = self.name.split("_")
         if len(parts) != 4:
             raise ValueError(
@@ -40,7 +39,7 @@ class PrimerModel(BaseModel):
 class AmpliconModel(BaseModel):
     """An amplicon as represented by two or more primer records"""
 
-    primers: list[PrimerModel]
+    primers: List[PrimerModel]
 
     @computed_field
     @property
@@ -61,11 +60,11 @@ class AmpliconModel(BaseModel):
 class BedModel(BaseModel):
     """A BED file as represented by a collection of amplicons each comprising primer records"""
 
-    amplicons: dict[str, list[AmpliconModel]]
-    reference_lengths: dict[str, int] | None = None
+    amplicons: Dict[str, List[AmpliconModel]]
+    reference_lengths: Optional[Dict[str, int]] = None
 
     @model_validator(mode="after")
-    def check_duplicate_primer_names(self) -> Self:
+    def check_duplicate_primer_names(self) -> "BedModel":
         primer_names = []
         for chrom, amplicons in self.amplicons.items():
             for amplicon in amplicons:
@@ -76,7 +75,7 @@ class BedModel(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def check_primer_bounds(self) -> Self:
+    def check_primer_bounds(self) -> "BedModel":
         if self.reference_lengths:
             ref_lens = self.reference_lengths
             for chrom, amplicons in self.amplicons.items():
@@ -92,7 +91,7 @@ class BedModel(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def check_primer_tiling(self) -> Self:
+    def check_primer_tiling(self) -> "BedModel":
         chroms_amplicon_boundaries = {}
         for chrom, amplicons in self.amplicons.items():
             chrom = chrom.partition(" ")[0]
@@ -104,12 +103,12 @@ class BedModel(BaseModel):
         return self
 
     @staticmethod
-    def check_overlap(interval1: tuple[int, int], interval2: tuple[int, int]) -> bool:
+    def check_overlap(interval1: Tuple[int, int], interval2: Tuple[int, int]) -> bool:
         """Check if two intervals overlap"""
         return max(interval1[0], interval2[0]) <= min(interval1[1], interval2[1])
 
     @staticmethod
-    def check_tiling(intervals):
+    def check_tiling(intervals: List[Tuple[int, int]]):
         """Verify if each interval overlaps exactly once with the interval before it and after it,
         and does not overlap with any other interval"""
         n = len(intervals)
