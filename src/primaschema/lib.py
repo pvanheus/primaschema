@@ -454,7 +454,7 @@ def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
     return pd.concat([df1, df2]).drop_duplicates(subset=column_subset, keep=False)
 
 
-def show_non_ref_alts(scheme_dir: Path) -> pd.DataFrame:
+def discordant_primers(scheme_dir: Path) -> pd.DataFrame:
     """Show primer records with sequences not matching the reference sequence"""
     bed_path = scheme_dir / "primer.bed"
     with TemporaryDirectory() as temp_dir:
@@ -469,7 +469,7 @@ def show_non_ref_alts(scheme_dir: Path) -> pd.DataFrame:
         return diff(bed1_path=bed_path, bed2_path=backfilled_bed_path)
 
 
-def compute_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
+def amplicon_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
     """
     find primer positions for all primers in the bed file and compute maximum
     interval between primers of the same name

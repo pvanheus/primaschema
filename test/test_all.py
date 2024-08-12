@@ -153,7 +153,7 @@ def test_diff():
 
 
 def test_calculate_intervals():
-    all_intervals = lib.compute_intervals(
+    all_intervals = lib.amplicon_intervals(
         data_dir / "primer-schemes/schemes/sars-cov-2/artic/400/v4.1/primer.bed"
     )
     assert "MN908947.3" in all_intervals
@@ -164,7 +164,7 @@ def test_calculate_intervals():
 
 def test_print_intervals():
     run_cmd = run(
-        "primaschema intervals primer-schemes/schemes/sars-cov-2/artic/400/v4.1/primer.bed"
+        "primaschema show-intervals primer-schemes/schemes/sars-cov-2/artic/400/v4.1/primer.bed"
     )
     assert """MN908947.3\t29452\t29854\tSARS-CoV-2_99\n""" in run_cmd.stdout
 

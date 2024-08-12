@@ -54,7 +54,7 @@ def validate(
     debug: bool = False,
 ):
     """
-    Validate one or many primer schemee bundles containing info.yml, primer.bed and reference.fasta
+    Validate one or more primer scheme definitions comprising info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: path of scheme.bed file
     :arg full: perform meticulous validation using full model
@@ -82,7 +82,7 @@ def build(
     debug: bool = False,
 ):
     """
-    Build one or many primer scheme bundles containing info.yml, primer.bed and reference.fasta
+    Build one or more primer scheme definitions comprising info.yml, primer.bed and reference.fasta
 
     :arg scheme_dir: path of input scheme directory
     :arg out_dir: path of directory in which to save scheme
@@ -146,24 +146,24 @@ def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
         print(df.to_string(index=False))
 
 
-def show_non_ref_alts(scheme_dir: Path):
+def discordant_primers(scheme_dir: Path):
     """
     Show primer records with sequences not matching the reference sequence
 
     :arg scheme_dir: path of input scheme directory
     """
-    df = lib.show_non_ref_alts(scheme_dir=scheme_dir)
+    df = lib.discordant_primers(scheme_dir=scheme_dir)
     if not df.empty:
         print(df.to_string(index=False))
 
 
-def show_intervals(bed_path: Path):
+def amplicon_intervals(bed_path: Path):
     """
-    Show intervals covered by primers in a BED file
+    Show amplicon start and end coordinates given a BED file of primer coordinates
 
-    :arg ref_path: path of bed file
+    :arg bed_path: path of bed file
     """
-    all_intervals = lib.compute_intervals(bed_path)
+    all_intervals = lib.amplicon_intervals(bed_path)
     sorted_by_chrom = sorted(all_intervals.items())
     for chrom, intervals in sorted_by_chrom:
         sorted_interval_keys = sorted(intervals, key=lambda x: (x[0], x[1]))
@@ -175,7 +175,6 @@ def show_intervals(bed_path: Path):
 def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     """
     Plot amplicon and primer coords from 7 column primer.bed
-    Requires primers to be named {scheme_name}_{amplicon_number}_{LEFT|RIGHT}_{1|2|3…}
 
     :arg bed_path: path of primer.bed file
     :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
@@ -188,15 +187,15 @@ def main():
         {
             "validate": validate,
             "build": build,
-            "manifest": build_manifest,
+            "build-manifest": build_manifest,
             "hash-ref": hash_ref,
             "hash-bed": hash_bed,
             "diff": diff,
             "6to7": six_to_seven,
             "7to6": seven_to_six,
-            "show-non-ref-alts": show_non_ref_alts,
-            "intervals": show_intervals,
             "plot": plot,
+            "show-intervals": amplicon_intervals,
+            "show-discordant-primers": discordant_primers,
         },
         no_negated_flags=True,
         strict_kwonly=False,
