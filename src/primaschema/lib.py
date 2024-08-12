@@ -475,7 +475,6 @@ def compute_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
     interval between primers of the same name
     """
     primer_name_re = re.compile(r"^(?P<name>.*)_(LEFT|RIGHT)(_.+)?$")
-    eden_primer_name_re = re.compile(r"^(?P<name>.*_[AB][0-9])(F|R)_\d+$")
     all_intervals: dict[str, dict[str, (int, int)]] = {}
     for line in open(bed_path):
         line_parts = line.strip().split("\t")
@@ -488,10 +487,7 @@ def compute_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
         intervals = all_intervals[chrom]
         primer_match = primer_name_re.match(name)
         if not primer_match:
-            # the Eden scheme has a unique primer name format
-            primer_match = eden_primer_name_re.match(name)
-            if not primer_name_re:
-                raise ValueError(f"Invalid primer name {name}")
+            raise ValueError(f"Invalid primer name {name}")
         primer_name = primer_match.group("name")
         if strand == "+":
             start_pos = int(start)

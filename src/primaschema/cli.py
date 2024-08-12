@@ -157,7 +157,7 @@ def show_non_ref_alts(scheme_dir: Path):
         print(df.to_string(index=False))
 
 
-def print_intervals(bed_path: Path):
+def show_intervals(bed_path: Path):
     """
     Show intervals covered by primers in a BED file
 
@@ -195,7 +195,7 @@ def main():
             "6to7": six_to_seven,
             "7to6": seven_to_six,
             "show-non-ref-alts": show_non_ref_alts,
-            "intervals": print_intervals,
+            "intervals": show_intervals,
             "plot": plot,
         },
         no_negated_flags=True,
