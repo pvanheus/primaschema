@@ -172,6 +172,16 @@ def amplicon_intervals(bed_path: Path):
             print(f"{chrom}\t{interval[0]}\t{interval[1]}\t{name}")
 
 
+def synchronise():
+    """
+    Plot amplicon and primer coords from 7 column primer.bed
+
+    :arg bed_path: path of primer.bed file
+    :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
+    """
+    lib.synchronise()
+
+
 def plot(bed_path: Path, out_path: Path = Path("plot.html")):
     """
     Plot amplicon and primer coords from 7 column primer.bed

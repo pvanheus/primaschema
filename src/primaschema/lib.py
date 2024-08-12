@@ -15,13 +15,16 @@ import altair as alt
 import pandas as pd
 
 from Bio import SeqIO
+from dulwich import porcelain
 
 from linkml.generators.pydanticgen import PydanticGenerator
 
 from . import (
-    header_path,
     logger,
-    schema_dir,
+    MANIFEST_HEADER_PATH,
+    CACHE_DIR,
+    SCHEMA_DIR,
+    SCHEMES_REPO_URL,
 )
 
 from .schema import bed, info
@@ -199,7 +202,7 @@ def parse_yaml(path: Path) -> dict:
 
 def validate_scheme_yaml_with_linkml(path: Path) -> None:
     data = parse_yaml(path)
-    report = linkml.validator.validate(data, schema_dir / "info.yml", "PrimerScheme")
+    report = linkml.validator.validate(data, SCHEMA_DIR / "info.yml", "PrimerScheme")
     if report.results:
         msg = ""
         for result in report.results:
@@ -271,8 +274,8 @@ def validate(
     recursive: bool = False,
     rebuild: bool = False,
 ) -> None:
-    info_schema_linkml_path = schema_dir / "info.yml"
-    info_schema_pydantic_path = schema_dir / "info.py"
+    info_schema_linkml_path = SCHEMA_DIR / "info.yml"
+    info_schema_pydantic_path = SCHEMA_DIR / "info.py"
     if recursive:
         for path in Path(scheme_dir).rglob("info.yml"):
             if path.is_file() and path.name == "info.yml":
@@ -411,7 +414,7 @@ def get_scheme_cname(scheme: dict, sep: Literal["/", "."] = "/") -> str:
 def build_manifest(root_dir: Path, out_dir: Path = Path()):
     """Build manifest of schemes inside the specified directory"""
 
-    manifest = parse_yaml(header_path)
+    manifest = parse_yaml(MANIFEST_HEADER_PATH)
 
     manifest_field_exclude = [
         "schema_version",
@@ -566,3 +569,7 @@ def plot_primers(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
 
     combined_chart.interactive().save(str(out_path))
     logger.info(f"Plot saved ({out_path})")
+
+
+def synchronise() -> None:
+    porcelain.clone(SCHEMES_REPO_URL, CACHE_DIR)

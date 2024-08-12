@@ -6,17 +6,28 @@ import os
 
 from pathlib import Path
 
+from platformdirs import user_data_dir
+
 
 __version__ = "1.0.0a0"
 
-pkg_dir = Path(
+
+SCHEMES_REPO_URL = "https://github.com/pha4ge/primer-schemes.git"
+CACHE_DIR = (
+    Path(os.environ.get("PRIMASCHEMA_CACHE_DIR", ""))
+    if os.environ.get("PRIMASCHEMA_CACHE_DIR")
+    else Path(user_data_dir("hostile", "PHA4GE"))
+)
+
+
+PKG_DIR = Path(
     os.environ.get(
         "PRIMASCHEMA_ROOT_PATH", Path(__file__).absolute().parent.parent.parent
     )
 )
-schema_dir = pkg_dir / "src" / "primaschema" / "schema"
-manifest_schema_path = schema_dir / "manifest.json"
-header_path = schema_dir / "manifest-header.yml"
+SCHEMA_DIR = PKG_DIR / "src" / "primaschema" / "schema"
+MANIFEST_SCHEMA_PATH = SCHEMA_DIR / "manifest.json"
+MANIFEST_HEADER_PATH = SCHEMA_DIR / "manifest-header.yml"
 
 logging_config = {
     "version": 1,
@@ -50,4 +61,4 @@ logging_config = {
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger("primaschema")
 
-logger.debug(f"{pkg_dir=} {schema_dir=}")
+logger.debug(f"{PKG_DIR=} {SCHEMA_DIR=}")
