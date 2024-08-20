@@ -338,9 +338,6 @@ def validate(
             )
         logger.info(f"Validated {get_scheme_cname(scheme)}")
 
-        if full:
-            pass
-
 
 def format_primer_bed(bed_path: Path) -> str:
     """Sort a primer bed into a maximally compatible format"""

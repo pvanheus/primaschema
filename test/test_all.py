@@ -83,8 +83,15 @@ def test_checksum_case_normalisation():
     ) == lib.hash_bed(data_dir / "different-case/eden.modified.primer.bed")
 
 
-def test_valid_recursive():
+def test_cli_valid_recursive():
     run("primaschema validate --recursive primer-schemes")
+
+
+def test_valid_rebuild():
+    lib.validate(
+        data_dir / "primer-schemes/schemes/sars-cov-2/eden/2500/v1",
+        rebuild=True,
+    )
 
 
 def test_hash_bed():
