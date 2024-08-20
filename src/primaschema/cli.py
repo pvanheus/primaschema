@@ -172,6 +172,17 @@ def amplicon_intervals(bed_path: Path):
             print(f"{chrom}\t{interval[0]}\t{interval[1]}\t{name}")
 
 
+def subset(scheme_dir: Path, chrom: str, out_dir: Path = Path("built")):
+    """
+    Extract a primer.bed and reference.fasta scheme subset for a single chromosome
+
+    :arg scheme_dir: path of input scheme directory
+    :arg chrom: name of chromosome for which to generate a subset scheme definition
+    :arg out_dir: path of directory in which to save subset scheme
+    """
+    lib.subset(scheme_dir=scheme_dir, chrom=chrom, out_dir=out_dir)
+
+
 def synchronise():
     """
     Retrieve/update local copy of remote primer scheme repository
@@ -203,6 +214,7 @@ def main():
             "plot": plot,
             "show-intervals": amplicon_intervals,
             "show-discordant-primers": discordant_primers,
+            "subset": subset,
             "sync": synchronise,
         },
         no_negated_flags=True,

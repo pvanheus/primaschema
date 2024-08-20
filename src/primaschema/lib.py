@@ -372,7 +372,7 @@ def build(
         if nested:
             out_dir = Path(out_dir) / Path(scheme_cname)
         else:
-            out_dir = Path(out_dir) / get_scheme_cname(scheme, sep=".")
+            out_dir = Path(out_dir) / get_scheme_cname(scheme, sep="_")
         try:
             out_dir.mkdir(parents=True, exist_ok=True)
         except FileExistsError:
@@ -568,6 +568,39 @@ def plot_primers(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
     logger.info(f"Plot saved ({out_path})")
 
 
+def subset(scheme_dir: Path, chrom: str, out_dir: Path = Path("built")) -> None:
+    scheme_dir = Path(scheme_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    reference_chroms = set()
+    subset_record = None
+    for record in SeqIO.parse(scheme_dir / "reference.fasta", "fasta"):
+        reference_chroms.add(record.id)
+        if record.id == chrom:
+            subset_record = record
+    if not subset_record:
+        raise ValueError(f"Chrom {chrom} not found in reference.fasta")
+    else:
+        with open(out_dir / "reference.fasta", "w") as fh:
+            SeqIO.write(subset_record, fh, "fasta")
+
+    primers_df = parse_primer_bed(scheme_dir / "primer.bed")
+    primers_df["chrom"] = primers_df["chrom"].str.partition(" ")[0]
+    primer_chroms = set(primers_df["chrom"].unique())
+    subset_primers_df = primers_df.query(f"chrom == '{chrom}'")
+    subset_primers_df.to_csv(
+        out_dir / "primer.bed", sep="\t", index=False, header=False
+    )
+
+    if reference_chroms != primer_chroms:
+        logger.info(f"Reference chroms: {reference_chroms}")
+        logger.info(f"Primer chroms: {primer_chroms}")
+    else:
+        logger.info(f"Chroms: {reference_chroms}")
+
+    logger.info(
+        f"Wrote subset of {len(subset_primers_df)}/{len(primers_df)} primers for {chrom} to {out_dir.resolve()}"
+    )
+
+
 def synchronise() -> None:
-    logger.info(CACHE_DIR)
     util.download_github_tarball(SCHEMES_ARCHIVE_URL, CACHE_DIR)

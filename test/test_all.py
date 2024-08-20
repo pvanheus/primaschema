@@ -241,3 +241,10 @@ def test_invalid_extra_field():
     with pytest.raises(ValueError):  # Also catches pydantic.ValidationError
         lib.validate(data_dir / "broken/info-yml/extra-field")
         lib.validate(data_dir / "broken/info-yml/extra-field", full=True)
+
+
+def test_subset():
+    lib.subset(scheme_dir=data_dir / "many-ref-chroms", chrom="NC_038235.1")
+    df = lib.parse_primer_bed("built/primer.bed")
+    assert len(df) == 4
+    run("rm -rf built", cwd="./")
