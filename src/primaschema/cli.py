@@ -174,10 +174,7 @@ def amplicon_intervals(bed_path: Path):
 
 def synchronise():
     """
-    Plot amplicon and primer coords from 7 column primer.bed
-
-    :arg bed_path: path of primer.bed file
-    :arg out_path: path of generated plot (with .html, .pdf, .png, or .svg extension)
+    Retrieve/update local copy of remote primer scheme repository
     """
     lib.synchronise()
 
@@ -206,6 +203,7 @@ def main():
             "plot": plot,
             "show-intervals": amplicon_intervals,
             "show-discordant-primers": discordant_primers,
+            "sync": synchronise,
         },
         no_negated_flags=True,
         strict_kwonly=False,

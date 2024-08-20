@@ -12,13 +12,13 @@ from platformdirs import user_data_dir
 __version__ = "1.0.0a0"
 
 
-SCHEMES_REPO_URL = "https://github.com/pha4ge/primer-schemes.git"
-CACHE_DIR = (
-    Path(os.environ.get("PRIMASCHEMA_CACHE_DIR", ""))
-    if os.environ.get("PRIMASCHEMA_CACHE_DIR")
-    else Path(user_data_dir("hostile", "PHA4GE"))
+SCHEMES_ARCHIVE_URL = os.environ.get(
+    "PRIMASCHEMA_SCHEMES_ARCHIVE_URL",
+    "https://github.com/pha4ge/primer-schemes/archive/refs/heads/main.tar.gz",
 )
-
+CACHE_DIR = Path(
+    os.environ.get("PRIMASCHEMA_CACHE_DIR") or user_data_dir("primaschema", "PHA4GE")
+)
 
 PKG_DIR = Path(
     os.environ.get(

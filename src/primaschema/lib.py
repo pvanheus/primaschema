@@ -15,7 +15,6 @@ import altair as alt
 import pandas as pd
 
 from Bio import SeqIO
-from dulwich import porcelain
 
 from linkml.generators.pydanticgen import PydanticGenerator
 
@@ -24,10 +23,11 @@ from . import (
     MANIFEST_HEADER_PATH,
     CACHE_DIR,
     SCHEMA_DIR,
-    SCHEMES_REPO_URL,
+    SCHEMES_ARCHIVE_URL,
 )
 
 from .schema import bed, info
+from . import util
 
 
 SCHEME_BED_FIELDS = ["chrom", "chromStart", "chromEnd", "name", "poolName", "strand"]
@@ -569,4 +569,5 @@ def plot_primers(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
 
 
 def synchronise() -> None:
-    porcelain.clone(SCHEMES_REPO_URL, CACHE_DIR)
+    logger.info(CACHE_DIR)
+    util.download_github_tarball(SCHEMES_ARCHIVE_URL, CACHE_DIR)
