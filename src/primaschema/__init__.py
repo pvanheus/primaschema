@@ -14,7 +14,7 @@ __version__ = "1.0.0a0"
 
 SCHEMES_ARCHIVE_URL = os.environ.get(
     "PRIMASCHEMA_SCHEMES_ARCHIVE_URL",
-    "https://github.com/pha4ge/primer-schemes/archive/refs/heads/main.tar.gz",
+    "https://github.com/pha4ge/primer-schemes/archive/refs/heads/v1a.tar.gz",
 )
 CACHE_DIR = Path(
     os.environ.get("PRIMASCHEMA_CACHE_DIR") or user_data_dir("primaschema", "PHA4GE")

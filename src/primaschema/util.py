@@ -16,7 +16,7 @@ def run(cmd, cwd="./"):  # Helper for CLI testing
     )
 
 
-def copy_single_child_dir_to_parent(parent_dir_path: Path):
+def copy_single_child_dir_to_parent(parent_dir_path: Path) -> None:
     parent_dir = Path(parent_dir_path)
     child_dirs = [
         d for d in parent_dir.iterdir() if d.is_dir() and not d.name.startswith(".")
@@ -34,8 +34,10 @@ def copy_single_child_dir_to_parent(parent_dir_path: Path):
         else:
             shutil.copy2(item, destination)
 
+    shutil.rmtree(child_dir)
 
-def download_github_tarball(archive_url: str, out_dir: Path):
+
+def download_github_tarball(archive_url: str, out_dir: Path) -> None:
     if not archive_url.endswith(".tar.gz"):
         raise ValueError("Archive URL must end with .tar.gz")
 
