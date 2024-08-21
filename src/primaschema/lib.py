@@ -456,9 +456,14 @@ def diff(bed1_path: Path, bed2_path: Path, only_positions: bool = False):
 
 def discordant_primers(scheme_dir: Path) -> pd.DataFrame:
     """Show primer records with sequences not matching the reference sequence"""
-    bed_path = scheme_dir / "primer.bed"
+    primer_bed_path = scheme_dir / "primer.bed"
+    scheme_bed_path = scheme_dir / "scheme.bed"
     with TemporaryDirectory() as temp_dir:
         backfilled_bed_path = Path(temp_dir) / "primer.bed"
+        if not scheme_bed_path.exists():
+            with open(scheme_bed_path, "w") as fh:
+                fh.write(convert_primer_bed_to_scheme_bed(primer_bed_path))
+            scheme_bed_path = Path(temp_dir) / "scheme.bed"
         with open(backfilled_bed_path, "w") as fh:
             fh.write(
                 convert_scheme_bed_to_primer_bed(
@@ -466,7 +471,7 @@ def discordant_primers(scheme_dir: Path) -> pd.DataFrame:
                     fasta_path=scheme_dir / "reference.fasta",
                 )
             )
-        return diff(bed1_path=bed_path, bed2_path=backfilled_bed_path)
+        return diff(bed1_path=primer_bed_path, bed2_path=backfilled_bed_path)
 
 
 def amplicon_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
