@@ -76,7 +76,7 @@ def validate(
 def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
-    nested: bool = True,
+    nested: bool = False,
     plot: bool = True,
     recursive: bool = False,
     debug: bool = False,
@@ -95,6 +95,7 @@ def build(
     lib.build(
         scheme_dir=scheme_dir,
         out_dir=out_dir,
+        nested=nested,
         plot=plot,
         recursive=recursive,
     )
