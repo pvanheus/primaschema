@@ -77,8 +77,9 @@ def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
     nested: bool = False,
-    plot: bool = True,
+    plot: bool = False,
     recursive: bool = False,
+    ignore_checksums: bool = False,
     debug: bool = False,
 ):
     """
@@ -89,6 +90,7 @@ def build(
     :arg nested: use nested output structure ({organism}/{scheme_name}/{amplicon_length}/{version})
     :arg plot: plot primers in SVG format
     :arg recursive: recursively find, validate and build primer scheme definitions
+    :arg ignore_checksums: ignore checksum mismatches
     :arg debug: show debug messages
     """
     configure_logging(debug)
@@ -98,6 +100,7 @@ def build(
         nested=nested,
         plot=plot,
         recursive=recursive,
+        ignore_checksums=ignore_checksums,
     )
 
 
@@ -191,7 +194,7 @@ def synchronise():
     lib.synchronise()
 
 
-def plot(bed_path: Path, out_path: Path = Path("plot.html")):
+def plot(bed_path: Path, out_path: Path = Path("primer.html")):
     """
     Plot amplicon and primer coords from 7 column primer.bed
 

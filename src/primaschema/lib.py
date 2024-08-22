@@ -283,7 +283,7 @@ def validate(
                     scheme_dir=path.parent, full=full, ignore_checksums=ignore_checksums
                 )
     else:
-        logger.debug(f"Validating {scheme_dir}")
+        logger.info(f"Validating {scheme_dir}")
         yml_path = Path(scheme_dir / "info.yml")
         bed_path = Path(scheme_dir / "primer.bed")
         ref_path = Path(scheme_dir / "reference.fasta")
@@ -348,9 +348,10 @@ def format_primer_bed(bed_path: Path) -> str:
 def build(
     scheme_dir: Path,
     out_dir: Path = Path("built"),
-    plot: bool = True,
+    plot: bool = False,
     nested: bool = False,  # Create nested output dir structure
     recursive: bool = False,
+    ignore_checksums: bool = False,
 ) -> None:
     """
     Validate and build a primer scheme given a scheme directory path.
@@ -364,9 +365,10 @@ def build(
                     out_dir=out_dir,
                     plot=plot,
                     nested=True,
+                    ignore_checksums=ignore_checksums,
                 )
     else:
-        validate(scheme_dir=scheme_dir)
+        validate(scheme_dir=scheme_dir, ignore_checksums=ignore_checksums)
         scheme = parse_yaml(scheme_dir / "info.yml")
         scheme_cname = get_scheme_cname(scheme)
         if nested:
@@ -395,7 +397,9 @@ def build(
             fh.write(scheme_bed_str)
 
         if plot:
-            plot_primers(bed_path=out_dir / "primer.bed", out_path=out_dir / "plot.svg")
+            plot_primers(
+                bed_path=out_dir / "primer.bed", out_path=out_dir / "primer.svg"
+            )
 
         logger.info(f"Built {scheme_cname}")
 
@@ -505,7 +509,7 @@ def amplicon_intervals(bed_path: Path) -> Dict[str, Dict[str, Tuple[int, int]]]:
     return all_intervals
 
 
-def plot_primers(bed_path: Path, out_path: Path = Path("plot.html")) -> None:
+def plot_primers(bed_path: Path, out_path: Path = Path("primer.html")) -> None:
     """
     Plot amplicon and primer positions from a 7 column primer.bed file
     Requires primers to be named {$scheme_id}_{$amplicon_id}_{LEFT|RIGHT}_{1|2|3…}
