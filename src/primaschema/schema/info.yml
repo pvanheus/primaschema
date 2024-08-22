@@ -34,6 +34,7 @@ classes:
       - citations
       - notes
       - vendors
+      - masks
       - primer_checksum
       - reference_checksum
 
@@ -48,6 +49,22 @@ classes:
       kit_name:
         slot_uri: GENEPIO:0100693
         description: "Vendor specific kit name for primer kit"
+
+  Mask:
+    description: "A region to mask out, with zero-based, half open coordinates"
+    attributes:
+      reference:
+        description: "Name (ID) of the reference sequence"
+      name:
+        description: "Name of the region"
+      start:
+        description: "Start coordinate of the region"
+        range: integer
+        minimum_value: 1
+      end:
+        description: "End coordination of the region"
+        range: integer
+        minimum_value: 1
 
 slots:
   schema_version:
@@ -131,6 +148,11 @@ slots:
     description: "The name of an organisation"
   home_page:
     description: "A link to the home page of an organisation"
+  masks:
+    description: "Regions of the reference genome that should be masked out with N"
+    multivalued: true
+    inlined_as_list: true
+    range: Mask
 
 enums:
   SchemeStatus:
