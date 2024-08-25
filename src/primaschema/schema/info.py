@@ -107,7 +107,7 @@ class Vendor(ConfiguredBaseModel):
     Vendor of the primers described in the amplicon scheme or a kit containing these primers
     """
     organisation_name: str = Field(..., description="""The name of the vendor""")
-    home_page: str = Field(..., description="""A link to the home page of the vendor""")
+    home_page: Optional[str] = Field(None, description="""A link to the home page of the vendor""")
     kit_name: Optional[str] = Field(None, description="""Vendor specific kit name for primer kit""")
 
 
